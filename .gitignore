@@ -26,3 +26,7 @@ dist-ssr/
 # Uploads & local storage
 backend/uploads/*
 !backend/uploads/.gitkeep
+
+# Design assets & zip bundles
+*.zip
+stitch_education_landing_page/
