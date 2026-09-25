@@ -1,40 +1,122 @@
 import pytest
-from app.services.deterministic_engine import deterministic_engine
+from app.services.deterministic_engine import DeterministicMisconceptionEngine
 
-def test_bkt_correct_answer_increases_mastery():
-    prior = 0.40
-    updated = deterministic_engine.update_bkt(prior_mastery=prior, is_correct=True)
-    assert updated > prior
-    assert updated <= 1.0
+@pytest.fixture
+def sample_rules():
+    return [
+        {
+            "id": "PAT_DIST_PARTIAL",
+            "name": "Partial Distribution",
+            "description": "Distributed to variable but not to constant",
+            "rule_type": "DISTRIBUTION_CHECK",
+            "rule_config": {"require_all_terms": True},
+            "classification": "procedural",
+            "intervention_type": "worked_example",
+            "principle_text": "a(b + c) = ab + ac",
+            "skill_name": "Distributive Property"
+        },
+        {
+            "id": "PAT_LIKE_UNLIKE",
+            "name": "Combining Unlike Terms",
+            "description": "Adding variable terms to constant terms",
+            "rule_type": "LIKE_TERM_CHECK",
+            "rule_config": {},
+            "classification": "conceptual",
+            "intervention_type": "conceptual_review",
+            "principle_text": "Only like terms can be combined.",
+            "skill_name": "Combining Like Terms"
+        },
+        {
+            "id": "PAT_ISOL_ONE_SIDE",
+            "name": "Single-Sided Operation",
+            "description": "Applied operation to one side only",
+            "rule_type": "SIDE_BALANCE_CHECK",
+            "rule_config": {},
+            "classification": "procedural",
+            "intervention_type": "worked_example",
+            "principle_text": "Operations must be bilateral.",
+            "skill_name": "Isolating the Variable"
+        },
+        {
+            "id": "PAT_ISOL_WRONG_INV",
+            "name": "Wrong Inverse Operation",
+            "description": "Subtracted instead of divided",
+            "rule_type": "OPERATION_CHECK",
+            "rule_config": {},
+            "classification": "procedural",
+            "intervention_type": "worked_example",
+            "principle_text": "Use division to invert multiplication.",
+            "skill_name": "Isolating the Variable"
+        }
+    ]
 
-def test_bkt_incorrect_answer_decreases_mastery():
-    prior = 0.70
-    updated = deterministic_engine.update_bkt(prior_mastery=prior, is_correct=False)
-    assert updated < prior
-    assert updated >= 0.0
+def test_partial_distribution_detected(sample_rules):
+    engine = DeterministicMisconceptionEngine()
+    result = engine.evaluate_attempt(
+        question_text="3(x + 2) = 15",
+        correct_answer="3",
+        student_answer="4.33",
+        work_shown=["3(x + 2) = 15", "3x + 2 = 15", "3x = 13", "x = 4.33"],
+        skill_id="sk_dist_04",
+        pattern_rules=sample_rules
+    )
+    assert result["matched"] is True
+    assert result["is_correct"] is False
+    assert result["engine_used"] == "deterministic"
+    assert result["pattern_id"] == "PAT_DIST_PARTIAL"
+    assert result["likely_misconception"] == "Partial Distribution"
+    assert result["mistake_card"] is not None
 
-def test_retention_decay_ebbinghaus():
-    initial = 0.85
-    # 0 days elapsed -> no decay
-    assert deterministic_engine.apply_retention_decay(initial, days_elapsed=0) == initial
-    
-    # 10 days elapsed -> decayed
-    decayed_10 = deterministic_engine.apply_retention_decay(initial, days_elapsed=10)
-    assert decayed_10 < initial
+def test_combining_unlike_terms_detected(sample_rules):
+    engine = DeterministicMisconceptionEngine()
+    result = engine.evaluate_attempt(
+        question_text="4x + 7 = 19",
+        correct_answer="3",
+        student_answer="1.72",
+        work_shown=["4x + 7 = 19", "11x = 19", "x = 1.72"],
+        skill_id="sk_like_03",
+        pattern_rules=sample_rules
+    )
+    assert result["matched"] is True
+    assert result["pattern_id"] == "PAT_LIKE_UNLIKE"
+    assert result["classification"] == "conceptual"
 
-    # 30 days elapsed -> further decayed
-    decayed_30 = deterministic_engine.apply_retention_decay(initial, days_elapsed=30)
-    assert decayed_30 < decayed_10
+def test_side_balance_error_detected(sample_rules):
+    engine = DeterministicMisconceptionEngine()
+    result = engine.evaluate_attempt(
+        question_text="x - 5 = 12",
+        correct_answer="17",
+        student_answer="12",
+        work_shown=["x - 5 = 12", "x = 12"],
+        skill_id="sk_isol_05",
+        pattern_rules=sample_rules
+    )
+    assert result["matched"] is True
+    assert result["pattern_id"] == "PAT_ISOL_ONE_SIDE"
 
-def test_evaluate_status():
-    assert deterministic_engine.evaluate_status(score=0.90, attempts=3) == "mastered"
-    assert deterministic_engine.evaluate_status(score=0.30, attempts=3) == "struggling"
-    assert deterministic_engine.evaluate_status(score=0.70, attempts=2) == "in_progress"
-    assert deterministic_engine.evaluate_status(score=0.0, attempts=0) == "unseen"
+def test_wrong_inverse_operation_detected(sample_rules):
+    engine = DeterministicMisconceptionEngine()
+    result = engine.evaluate_attempt(
+        question_text="4x = 12",
+        correct_answer="3",
+        student_answer="8",
+        work_shown=["4x = 12", "x = 8"],
+        skill_id="sk_isol_05",
+        pattern_rules=sample_rules
+    )
+    assert result["matched"] is True
+    assert result["pattern_id"] == "PAT_ISOL_WRONG_INV"
 
-def test_aggregate_twin_metrics():
-    scores = [0.90, 0.85, 0.80]
-    metrics = deterministic_engine.aggregate_twin_metrics(scores)
-    assert 0.80 <= metrics["overall_mastery"] <= 0.90
-    assert 0.0 <= metrics["cognitive_load"] <= 1.0
-    assert metrics["learning_pace"] > 1.0
+def test_correct_solution_passes(sample_rules):
+    engine = DeterministicMisconceptionEngine()
+    result = engine.evaluate_attempt(
+        question_text="3(x + 2) = 15",
+        correct_answer="3",
+        student_answer="3",
+        work_shown=["3x + 6 = 15", "3x = 9", "x = 3"],
+        skill_id="sk_dist_04",
+        pattern_rules=sample_rules
+    )
+    assert result["is_correct"] is True
+    assert result["matched"] is True
+    assert result["classification"] == "correct"

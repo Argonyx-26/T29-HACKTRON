@@ -1,45 +1,117 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+import uuid
+import shutil
+import os
+from pathlib import Path
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from app.database import get_db
-from app.models.all_models import Document
-from app.schemas.all_schemas import DocumentResponse
-from app.services.document_ingestion import document_ingestion_service
+from app.config import settings
+from app.models.all_models import UploadedDocument, ContentExtraction, Chapter, Skill, Question
+from app.services.document_ingestion import DocumentIngestionService
 
-router = APIRouter(prefix="/documents", tags=["Curriculum Documents"])
+router = APIRouter(prefix="/documents", tags=["Bring Your Own Chapter"])
 
-@router.get("", response_model=List[DocumentResponse])
-def list_documents(db: Session = Depends(get_db)):
-    return db.query(Document).order_by(Document.uploaded_at.desc()).all()
+@router.post("/upload")
+async def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """
+    Accepts student study materials (PDF), validates, and initiates
+    the structured content extraction pipeline.
+    """
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF chapter documents are currently supported.")
 
-@router.post("/upload", response_model=DocumentResponse, status_code=status.HTTP_201_CREATED)
-async def upload_document(
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    content = await file.read()
-    doc = document_ingestion_service.save_upload(
+    doc_id = f"doc_{uuid.uuid4().hex[:8]}"
+    safe_filename = f"{doc_id}_{file.filename}"
+    file_path = settings.UPLOAD_DIR / safe_filename
+
+    # Save to disk
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    file_size = os.path.getsize(file_path)
+
+    doc = UploadedDocument(
+        id=doc_id,
         filename=file.filename,
-        content=content,
-        mime_type=file.content_type or "application/octet-stream",
-        db=db
+        file_path=str(file_path),
+        file_size_bytes=file_size,
+        status="uploading",
+        progress_percent=10,
+        current_stage="uploading"
     )
-    return doc
+    db.add(doc)
+    db.commit()
 
-@router.post("/{document_id}/parse")
-def parse_curriculum_document(document_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    try:
-        result = document_ingestion_service.process_document(db, document_id)
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Parsing failed: {str(e)}")
+    # Process extraction pipeline
+    ingestion_result = DocumentIngestionService.process_pdf_document(db, doc_id)
 
-@router.get("/{document_id}", response_model=DocumentResponse)
-def get_document(document_id: str, db: Session = Depends(get_db)):
-    doc = db.query(Document).filter(Document.id == document_id).first()
+    return {
+        "document_id": doc_id,
+        "filename": file.filename,
+        "file_size_bytes": file_size,
+        "status": doc.status,
+        "current_stage": doc.current_stage,
+        "progress_percent": doc.progress_percent,
+        "chapter_id": doc.chapter_id,
+        "result": ingestion_result
+    }
+
+@router.get("/{document_id}/status")
+def get_document_status(document_id: str, db: Session = Depends(get_db)):
+    doc = db.query(UploadedDocument).filter(UploadedDocument.id == document_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
-    return doc
+        
+    return {
+        "document_id": doc.id,
+        "filename": doc.filename,
+        "status": doc.status,
+        "current_stage": doc.current_stage,
+        "progress_percent": doc.progress_percent,
+        "chapter_id": doc.chapter_id,
+        "error_message": doc.error_message
+    }
+
+@router.get("/{document_id}/review")
+def review_extracted_content(document_id: str, db: Session = Depends(get_db)):
+    """
+    Returns extracted skills, concepts, and candidate questions with complete provenance
+    for student review before launching diagnostic assessment.
+    """
+    doc = db.query(UploadedDocument).filter(UploadedDocument.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if not doc.chapter_id:
+        return {"status": doc.status, "message": "Content still processing"}
+
+    chapter = db.query(Chapter).filter(Chapter.id == doc.chapter_id).first()
+    skills = db.query(Skill).filter(Skill.chapter_id == doc.chapter_id).order_by(Skill.order).all()
+    questions = db.query(Question).filter(Question.chapter_id == doc.chapter_id).all()
+    extraction = db.query(ContentExtraction).filter(ContentExtraction.document_id == document_id).first()
+
+    return {
+        "document_id": doc.id,
+        "filename": doc.filename,
+        "chapter_id": doc.chapter_id,
+        "chapter_title": chapter.title if chapter else doc.filename,
+        "subject": chapter.subject if chapter else "General",
+        "skills": [{
+            "id": s.id,
+            "code": s.code,
+            "name": s.name,
+            "description": s.description,
+            "prerequisites": s.prerequisite_skill_ids or []
+        } for s in skills],
+        "questions": [{
+            "id": q.id,
+            "question_text": q.question_text,
+            "correct_answer": q.correct_answer,
+            "expected_steps": q.expected_steps or [],
+            "provenance": q.source_reference or {}
+        } for q in questions],
+        "extracted_concepts": extraction.extracted_concepts if extraction else [],
+        "preview_text": extraction.extracted_text_preview if extraction else ""
+    }

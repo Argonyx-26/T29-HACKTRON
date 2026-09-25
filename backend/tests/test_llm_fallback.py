@@ -1,53 +1,36 @@
-from app.services.llm_reasoning import llm_reasoning_service
+from app.database import SessionLocal
+from app.services.llm_reasoning import LLMReasoningService
+from app.schemas.all_schemas import LLMDiagnosisSchema
 
-def test_llm_fallback_diagnosis():
-    # Calling diagnosis without LLM keys should seamlessly produce deterministic output
-    student_name = "Charlie Davis"
-    overall_mastery = 0.35
-    struggling_topics = [
-        {"title": "2D Projectile Motion", "score": 0.28},
-        {"title": "Friction & Drag Forces", "score": 0.30}
-    ]
-    mastered_topics = []
+def test_strict_llm_schema_validation():
+    valid_json = """{
+        "classification": "procedural",
+        "likely_misconception": "Premature Inversion Error",
+        "confidence": 0.85,
+        "reasoning": "Student inverted division prior to grouping like terms.",
+        "reusable_pattern": true,
+        "principle_violated": "Order of algebraic isolation operations"
+    }"""
+    schema = LLMReasoningService._parse_and_validate(valid_json)
+    assert isinstance(schema, LLMDiagnosisSchema)
+    assert schema.classification == "procedural"
+    assert schema.reusable_pattern is True
 
-    diagnosis = llm_reasoning_service.generate_twin_diagnosis(
-        student_name=student_name,
-        overall_mastery=overall_mastery,
-        struggling_topics=struggling_topics,
-        mastered_topics=mastered_topics
-    )
-
-    assert diagnosis["source"] == "deterministic_fallback"
-    assert diagnosis["student_name"] == student_name
-    assert "Charlie Davis" in diagnosis["summary"]
-    assert "bottlenecks" in diagnosis["summary"] or "gaps" in diagnosis["summary"]
-    assert len(diagnosis["priority_focus"]) > 0
-
-def test_llm_fallback_high_mastery():
-    student_name = "Alice Zhang"
-    overall_mastery = 0.92
-    struggling_topics = []
-    mastered_topics = [
-        {"title": "Vector Decomposition", "score": 0.95},
-        {"title": "Newton's Laws", "score": 0.90}
-    ]
-
-    diagnosis = llm_reasoning_service.generate_twin_diagnosis(
-        student_name=student_name,
-        overall_mastery=overall_mastery,
-        struggling_topics=struggling_topics,
-        mastered_topics=mastered_topics
-    )
-
-    assert diagnosis["source"] == "deterministic_fallback"
-    assert "exceptional" in diagnosis["summary"].lower()
-
-def test_llm_fallback_misconception():
-    explanation = llm_reasoning_service.explain_misconception(
-        topic_title="2D Projectile Motion",
-        score=0.25,
-        attempts=4
-    )
-    assert explanation["source"] == "deterministic_fallback"
-    assert explanation["attempts"] == 4
-    assert "prerequisite" in explanation["diagnosis"].lower()
+def test_safe_deterministic_fallback():
+    db = SessionLocal()
+    try:
+        res = LLMReasoningService._safe_simulated_ai_reasoning(
+            db=db,
+            request_id="test_req_123",
+            question_text="3(x + 1) + 2x = 18",
+            student_answer="9",
+            work_shown=["5x + 3 = 18", "x + 3 = 18 / 5"],
+            skill_name="Multi-Step Equations",
+            skill_id="sk_multi_06"
+        )
+        assert res["matched"] is True
+        assert res["engine_used"] == "llm_fallback"
+        assert res["confidence"] >= 0.80
+        assert res["mistake_card"] is not None
+    finally:
+        db.close()

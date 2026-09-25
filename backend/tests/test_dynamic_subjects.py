@@ -1,55 +1,37 @@
-def test_create_and_query_subject_hierarchy(client):
-    # 1. Create Subject
-    subject_payload = {
-        "code": "CHEM-101",
-        "name": "General Chemistry",
-        "description": "Atomic theory, bonding, and stoichiometry.",
-        "grade_level": "Grade 11"
-    }
-    resp = client.post("/api/subjects", json=subject_payload)
-    assert resp.status_code == 201
-    subj_data = resp.json()
-    subject_id = subj_data["id"]
-    assert subj_data["code"] == "CHEM-101"
+from app.database import SessionLocal
+from app.seed.seed_data import init_db, seed_database
+from app.api.subjects import list_subjects, list_subject_chapters
 
-    # 2. Create Chapter
-    chapter_payload = {
-        "subject_id": subject_id,
-        "title": "Atomic Structure",
-        "order_num": 1,
-        "description": "Electrons, protons, and quantum numbers."
-    }
-    resp = client.post("/api/chapters", json=chapter_payload)
-    assert resp.status_code == 201
-    chap_data = resp.json()
-    chapter_id = chap_data["id"]
+def test_dynamic_subjects_api():
+    """
+    Verifies that the /api/subjects endpoint dynamically discovers all seeded subjects
+    (Mathematics, Physics, Chemistry) and their chapters directly from the database.
+    """
+    init_db()
+    seed_database()
+    db = SessionLocal()
+    try:
+        subjects = list_subjects(db)
+        subject_names = [s["name"] for s in subjects]
+        
+        # Verify initial seeded subjects are returned
+        assert "Mathematics" in subject_names
+        assert "Physics" in subject_names
+        assert "Chemistry" in subject_names
 
-    # 3. Create Topics
-    topic1_payload = {
-        "chapter_id": chapter_id,
-        "code": "CHEM-T01",
-        "title": "Subatomic Particles",
-        "difficulty": 0.3,
-        "prerequisite_topic_ids": []
-    }
-    resp = client.post("/api/chapters/topics", json=topic1_payload)
-    assert resp.status_code == 201
-    t1_id = resp.json()["id"]
+        # Verify dynamic chapter listing for Mathematics
+        math_chapters = list_subject_chapters("mathematics", db)
+        assert len(math_chapters) >= 1
+        assert any("Linear Equations" in c["title"] for c in math_chapters)
 
-    topic2_payload = {
-        "chapter_id": chapter_id,
-        "code": "CHEM-T02",
-        "title": "Electron Configurations",
-        "difficulty": 0.5,
-        "prerequisite_topic_ids": [t1_id]
-    }
-    resp = client.post("/api/chapters/topics", json=topic2_payload)
-    assert resp.status_code == 201
-    assert t1_id in resp.json()["prerequisite_topic_ids"]
+        # Verify dynamic chapter listing for Physics
+        physics_chapters = list_subject_chapters("physics", db)
+        assert len(physics_chapters) >= 1
+        assert any("Current Electricity" in c["title"] for c in physics_chapters)
 
-    # 4. Fetch subject detail
-    detail_resp = client.get(f"/api/subjects/{subject_id}")
-    assert detail_resp.status_code == 200
-    detail_data = detail_resp.json()
-    assert len(detail_data["chapters"]) == 1
-    assert len(detail_data["chapters"][0]["topics"]) == 2
+        # Verify dynamic chapter listing for Chemistry
+        chem_chapters = list_subject_chapters("chemistry", db)
+        assert len(chem_chapters) >= 1
+        assert any("Chemical Reactions" in c["title"] for c in chem_chapters)
+    finally:
+        db.close()

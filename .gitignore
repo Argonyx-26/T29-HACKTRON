@@ -15,10 +15,7 @@ __pycache__/
 *$py.class
 venv/
 .venv/
-ENV/
 .pytest_cache/
-.coverage
-htmlcov/
 
 # Node / Frontend
 node_modules/
@@ -29,10 +26,3 @@ dist-ssr/
 # Uploads & local storage
 backend/uploads/*
 !backend/uploads/.gitkeep
-frontend/uploads/*
-
-# IDE & OS
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db

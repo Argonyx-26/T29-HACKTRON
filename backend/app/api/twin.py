@@ -1,85 +1,104 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 
 from app.database import get_db
-from app.models.all_models import StudentTwin, TopicMastery, Topic, User
-from app.schemas.all_schemas import StudentTwinResponse, KnowledgeGraphResponse
-from app.services.mastery_service import mastery_service
-from app.services.llm_reasoning import llm_reasoning_service
-from app.services.analytics_service import analytics_service
+from app.models.all_models import Student
+from app.services.analytics_service import AnalyticsService
 
-router = APIRouter(prefix="/twin", tags=["Knowledge Twin"])
+router = APIRouter(prefix="/students", tags=["Knowledge Twin"])
 
-@router.get("/{student_id}", response_model=StudentTwinResponse)
+class StudentCreate(BaseModel):
+    id: str
+    name: str
+    role: Optional[str] = "student"
+    email: Optional[str] = None
+    avatar_color: Optional[str] = "#3B82F6"
+
+@router.get("", response_model=List[Dict[str, Any]])
+def list_students(db: Session = Depends(get_db)):
+    """List all registered learners."""
+    students = db.query(Student).all()
+    return [{
+        "id": s.id,
+        "name": s.name,
+        "role": s.role,
+        "email": s.email,
+        "avatar_color": s.avatar_color
+    } for s in students]
+
+@router.post("", response_model=Dict[str, Any])
+def create_or_sync_student(payload: StudentCreate, db: Session = Depends(get_db)):
+    """
+    Authoritative student registration / sync endpoint.
+    Associates the stable user_id with the student record in PostgreSQL.
+    """
+    try:
+        student = db.query(Student).filter(Student.id == payload.id).first()
+        if not student:
+            student = Student(
+                id=payload.id,
+                name=payload.name,
+                role=payload.role or "student",
+                email=payload.email,
+                avatar_color=payload.avatar_color or "#3B82F6"
+            )
+            db.add(student)
+            db.commit()
+            db.refresh(student)
+        else:
+            if payload.name and payload.name != student.name:
+                student.name = payload.name
+            if payload.role and payload.role != student.role:
+                student.role = payload.role
+            db.commit()
+            db.refresh(student)
+    except Exception:
+        db.rollback()
+        student = db.query(Student).filter(Student.id == payload.id).first()
+        if not student:
+            # Fallback in-memory representation if DB lookup failed
+            return {
+                "id": payload.id,
+                "name": payload.name,
+                "role": payload.role or "student",
+                "avatar_color": payload.avatar_color or "#3B82F6",
+                "created_at": None
+            }
+
+    return {
+        "id": student.id,
+        "name": student.name,
+        "role": student.role,
+        "avatar_color": student.avatar_color,
+        "created_at": student.created_at.isoformat() if student.created_at else None
+    }
+
+@router.get("/{student_id}/twin")
 def get_student_twin(student_id: str, db: Session = Depends(get_db)):
-    student = db.query(User).filter(User.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
+    """
+    Returns the living Knowledge Twin model for the student:
+    mastery per skill, evidence-based confidence, active & resolved mistake cards,
+    prerequisite gaps, and emerging risk alerts.
+    """
+    try:
+        twin = AnalyticsService.get_student_knowledge_twin(db, student_id)
+        return twin
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
-    twin = mastery_service.get_or_create_twin(db, student_id)
-    # Eagerly load topic info into response
-    mastery_records = db.query(TopicMastery).filter(TopicMastery.twin_id == twin.id).all()
-    for m in mastery_records:
-        topic = db.query(Topic).filter(Topic.id == m.topic_id).first()
-        if topic:
-            m.topic_title = topic.title
-            m.topic_code = topic.code
+@router.get("/{student_id}/progress")
+def get_student_progress(student_id: str, db: Session = Depends(get_db)):
+    """
+    Returns authoritative learner progress directly from database attempts and mastery.
+    """
+    return AnalyticsService.get_student_progress(db, student_id)
 
-    twin.topic_masteries = mastery_records
-    return twin
+@router.get("/{student_id}/activity")
+def get_student_activity(student_id: str, db: Session = Depends(get_db)):
+    """
+    Returns authoritative learner activity timeline directly from database attempts and retests.
+    """
+    return AnalyticsService.get_student_activity(db, student_id)
 
-@router.get("/{student_id}/graph", response_model=KnowledgeGraphResponse)
-def get_knowledge_graph(student_id: str, db: Session = Depends(get_db)):
-    student = db.query(User).filter(User.id == student_id).first()
-    if not student:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    graph_data = mastery_service.get_knowledge_graph(db, student_id)
-    return graph_data
-
-@router.post("/{student_id}/practice")
-def record_practice_attempt(
-    student_id: str,
-    payload: Dict[str, Any] = Body(..., example={"topic_id": "uuid", "is_correct": True}),
-    db: Session = Depends(get_db)
-):
-    topic_id = payload.get("topic_id")
-    is_correct = payload.get("is_correct", False)
-    if not topic_id:
-        raise HTTPException(status_code=400, detail="topic_id is required")
-
-    topic = db.query(Topic).filter(Topic.id == topic_id).first()
-    if not topic:
-        raise HTTPException(status_code=404, detail="Topic not found")
-
-    updated_record = mastery_service.record_practice_event(
-        db=db,
-        student_id=student_id,
-        topic_id=topic_id,
-        is_correct=is_correct
-    )
-    return {
-        "message": "Practice event recorded and knowledge twin updated",
-        "topic_id": topic_id,
-        "new_mastery_score": updated_record.score,
-        "status": updated_record.status,
-        "attempts": updated_record.attempts_count
-    }
-
-@router.get("/{student_id}/diagnosis")
-def get_student_twin_diagnosis(student_id: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
-    report = analytics_service.get_student_diagnostic_report(db, student_id)
-    if not report:
-        raise HTTPException(status_code=404, detail="Student not found")
-
-    diagnosis = llm_reasoning_service.generate_twin_diagnosis(
-        student_name=report["student_name"],
-        overall_mastery=report["overall_mastery"],
-        struggling_topics=report["struggling_topics"],
-        mastered_topics=report["mastered_topics"]
-    )
-    return {
-        "diagnostic_report": report,
-        "ai_synthesis": diagnosis
-    }
