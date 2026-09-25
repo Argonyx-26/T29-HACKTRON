@@ -7491,3 +7491,423 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
   #root .learn-continue-card { flex-wrap: wrap; }
   #root .learn-continue-card > button { margin-left: auto; }
 }
+
+
+/* Assessment view continues the student paper-and-ink theme. */
+#root .student-assess-shell { background: #f6f7f5 !important; }
+#root .student-assess-main { max-width: none !important; margin: 0 auto !important; padding: 18px 24px 30px !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; }
+#root .student-assess-sidebar { color: #17232c !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; border-right: 1px solid #cbd0d1 !important; }
+#root .student-assess-sidebar > div:first-child, #root .student-assess-sidebar .app-sidebar-footer { border-color: #cbd0d1 !important; }
+#root .student-assess-sidebar .knowledge-twin-mark { color: #fff !important; background: #263741 !important; }
+#root .student-assess-sidebar .knowledge-twin-wordmark, #root .student-assess-sidebar .knowledge-twin-wordmark span { color: #17232c !important; }
+#root .student-assess-sidebar .knowledge-twin-wordmark em { color: #58646b !important; }
+#root .student-assess-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-assess-sidebar .sidebar-nav-button svg { color: #293943 !important; }
+#root .student-assess-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
+#root .student-assess-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .student-assess-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-assess-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
+#root .student-assess-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
+#root .student-assess-sidebar .app-sidebar-footer svg { color: #34414a !important; }
+#root .student-assess-shell .app-workspace > footer { color: #59636a !important; background: #f6f7f5 !important; border-top-color: #cbd0d1 !important; }
+#root .assessment-dashboard { --assessment-purple: #35434c; width: 100% !important; max-width: none !important; margin: 0 !important; color: #17232c !important; font-family: 'Satoshi', sans-serif !important; }
+#root .assessment-topbar { margin: 0 0 18px !important; }
+#root .assessment-topbar label { width: min(690px,78%); height: 42px; color: #46535b !important; background: rgba(255,255,255,.36) !important; border: 1px solid #c2c7c9 !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .assessment-topbar label:focus-within { border-color: #7b878d !important; box-shadow: 0 0 0 2px rgba(47,62,71,.08) !important; }
+#root .assessment-topbar input { color: #26343d !important; font: 400 13px 'Satoshi', sans-serif !important; }
+#root .assessment-topbar input::placeholder { color: #68737a !important; }
+#root .assessment-topbar > button { color: #26343d !important; }
+#root .assessment-topbar > button i { background: #68747a !important; box-shadow: none !important; }
+#root .assessment-heading { min-height: 156px; margin: 0 0 10px !important; }
+#root .assessment-heading > div > span { color: #58646b !important; font: 600 12px 'Satoshi', sans-serif !important; letter-spacing: .12em !important; }
+#root .assessment-heading h1 { margin: 4px 0 0 !important; color: #111d2a !important; font: 800 clamp(38px,4.2vw,58px)/1.04 'Satoshi', sans-serif !important; letter-spacing: -.05em !important; }
+#root .assessment-heading p { color: #58646b !important; font: 400 16px 'Satoshi', sans-serif !important; }
+#root .assessment-hero-art { display: flex; min-width: 390px; height: 150px; align-items: center; justify-content: flex-end; gap: clamp(20px,4vw,55px); color: #25343d; }
+#root .assessment-hero-art > div { position: relative; display: flex; width: 250px; height: 140px; align-items: flex-end; justify-content: center; color: #263740; }
+#root .assessment-hero-art > div svg:first-child { width: 205px; height: 112px; stroke-width: .9; }
+#root .assessment-hero-art > div svg:nth-child(2) { position: absolute; top: 2px; left: 58%; width: 48px; height: 56px; stroke-width: 1; }
+#root .assessment-hero-art > div svg:nth-child(3) { position: absolute; top: 25px; left: 17%; width: 36px; height: 44px; stroke-width: 1; }
+#root .assessment-hero-art blockquote { max-width: 160px; margin: 0 4px 0 0 !important; color: #2b3942 !important; text-align: center; font: italic 500 18px/1.4 'Satoshi', sans-serif !important; transform: rotate(-5deg); }
+#root .assessment-main-grid { grid-template-columns: minmax(0,1fr) minmax(280px,340px); gap: 15px !important; }
+#root .assessment-main-column, #root .assessment-side-column { gap: 13px !important; }
+#root .assessment-tabs { min-height: 40px; gap: 7px; border: 0 !important; }
+#root .assessment-tabs button { min-width: 0; min-height: 37px; padding: 7px 12px !important; color: #46535a !important; background: rgba(255,255,255,.27) !important; border: 1px solid #cbd0d1 !important; border-radius: 5px !important; font: 500 11px 'Satoshi', sans-serif !important; }
+#root .assessment-tabs button:after { display: none !important; }
+#root .assessment-tabs button:hover { color: #17232c !important; background: rgba(255,255,255,.7) !important; text-shadow: none !important; }
+#root .assessment-tabs button.is-active { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+#root .assessment-tabs button.is-active svg { color: #fff !important; }
+#root .assessment-tabs button small { color: #26343d !important; background: #e7e9e8 !important; }
+#root .assessment-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+#root .assessment-metrics > article { display: flex; min-height: 85px; align-items: center; gap: 11px; padding: 10px; background: rgba(255,255,255,.34); border: 1px solid #c8cdce; border-radius: 5px; }
+#root .assessment-metrics > article > span { display: grid; flex: 0 0 44px; width: 44px; height: 44px; place-items: center; color: #263741; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 5px; }
+#root .assessment-metrics > article > div { display: flex; min-width: 0; flex-direction: column; gap: 1px; }
+#root .assessment-metrics small { color: #5c676e !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .assessment-metrics strong { color: #17232c !important; font: 700 20px 'Satoshi', sans-serif !important; }
+#root .assessment-metrics p { color: #657078 !important; font: 400 9px 'Satoshi', sans-serif !important; }
+#root .assessment-subject-section { padding: 13px; background: rgba(255,255,255,.2); border: 1px solid #c8cdce; border-radius: 5px; }
+#root .assessment-subject-section > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+#root .assessment-subject-section h2, #root .assessment-recent-panel h2, #root .assessment-recommendations h2, #root .assessment-side-list h2, #root .assessment-performance-panel h2 { color: #17232c !important; font: 700 17px 'Satoshi', sans-serif !important; }
+#root .assessment-subject-section header p, #root .assessment-recent-panel header p, #root .assessment-recommendations header p { color: #616c73 !important; font: 400 11px 'Satoshi', sans-serif !important; }
+#root .assessment-subject-section > header > button, #root .assessment-recent-panel > header > button, #root .assessment-recommendations > header > button, #root .assessment-side-list > header > button, #root .assessment-performance-panel > header > button { display: inline-flex; align-items: center; gap: 4px; padding: 3px !important; color: #4e5b62 !important; background: transparent !important; border: 0 !important; font: 500 10px 'Satoshi', sans-serif !important; white-space: nowrap; cursor: pointer; }
+#root .assessment-subject-filters { display: flex; gap: 7px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 1px; }
+#root .assessment-subject-filters button { min-width: 76px; min-height: 31px; padding: 0 11px; color: #46535a; background: rgba(255,255,255,.32); border: 1px solid #cbd0d1; border-radius: 5px; font: 400 10px 'Satoshi', sans-serif; white-space: nowrap; cursor: pointer; }
+#root .assessment-subject-filters button.is-active { color: #fff; background: #303a41; border-color: #303a41; }
+#root .assessment-curriculum-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+#root .assessment-curriculum-grid article { display: flex; min-width: 0; min-height: 170px; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px; background: rgba(255,255,255,.35); border: 1px solid #cbd0d1; border-radius: 5px; }
+#root .assessment-curriculum-grid article > span { display: grid; height: 54px; place-items: center; color: #263741; }
+#root .assessment-curriculum-grid article > strong { color: #657078; font: 500 10px 'Satoshi', sans-serif; }
+#root .assessment-curriculum-grid article h3 { display: -webkit-box; min-height: 32px; overflow: hidden; color: #1c2932 !important; font: 600 12px/1.3 'Satoshi', sans-serif !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+#root .assessment-curriculum-grid article > small { color: #616c73; font: 400 9px 'Satoshi', sans-serif; }
+#root .assessment-curriculum-grid article > small i { padding: 0 3px; font-style: normal; }
+#root .assessment-curriculum-grid article > button { display: flex; width: 100%; min-height: 32px; align-items: center; justify-content: center; gap: 5px; margin-top: auto; padding: 4px 7px; color: #fff; background: #303a41; border: 1px solid #303a41; border-radius: 4px; font: 500 10px 'Satoshi', sans-serif; cursor: pointer; }
+#root .assessment-curriculum-grid article > button:hover { background: #414d54; }
+#root .assessment-recent-panel, #root .assessment-recommendations { padding: 13px !important; background: rgba(255,255,255,.3) !important; border: 1px solid #c8cdce !important; border-radius: 5px !important; }
+#root .assessment-recent-panel > header, #root .assessment-recommendations > header { margin-bottom: 8px; }
+#root .assessment-recommendation-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+#root .assessment-recommendation-grid button { min-height: 60px; gap: 8px; padding: 8px; color: #3c4850; background: rgba(255,255,255,.38); border: 1px solid #d1d5d5; border-radius: 5px; }
+#root .assessment-recommendation-grid button > span, #root .assessment-action-grid article > span { flex: 0 0 34px; width: 34px; height: 34px; color: #263741; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 4px; }
+#root .assessment-recommendation-grid button > div { gap: 2px; }
+#root .assessment-recommendation-grid strong { color: #26343d !important; font: 600 10px 'Satoshi', sans-serif !important; }
+#root .assessment-recommendation-grid small { color: #657078 !important; font: 400 9px/1.35 'Satoshi', sans-serif !important; }
+#root .assessment-recommendation-grid button > svg { color: #46535a; }
+#root .assessment-recommendation-grid button:hover { background: rgba(255,255,255,.8); border-color: #aeb5b8; transform: none; box-shadow: none; }
+#root .assessment-performance-panel, #root .assessment-side-list { padding: 13px; background: rgba(255,255,255,.34); border: 1px solid #c8cdce; border-radius: 5px; }
+#root .assessment-performance-panel > header, #root .assessment-side-list > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+#root .assessment-performance-body { display: flex; min-height: 135px; align-items: center; justify-content: space-around; gap: 10px; }
+#root .assessment-score-ring { display: grid; flex: 0 0 108px; width: 108px; height: 108px; place-items: center; border-radius: 50%; }
+#root .assessment-score-ring > div { display: flex; width: 82px; height: 82px; flex-direction: column; align-items: center; justify-content: center; background: #f7f8f6; border: 1px solid #d4d8d8; border-radius: 50%; text-align: center; }
+#root .assessment-score-ring strong { color: #1d2b34; font: 700 19px 'Satoshi', sans-serif; }
+#root .assessment-score-ring small { color: #5e6970; font: 400 9px/1.15 'Satoshi', sans-serif; }
+#root .assessment-performance-body ul { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; color: #5c676e; font: 400 10px 'Satoshi', sans-serif; }
+#root .assessment-performance-body li { display: grid; grid-template-columns: 8px minmax(48px,1fr) auto; align-items: center; gap: 6px; white-space: nowrap; }
+#root .assessment-performance-body li i { width: 8px; height: 8px; background: #35434c; border-radius: 50%; }
+#root .assessment-performance-body li:nth-child(2) i { background: #939da1; }
+#root .assessment-performance-body li:nth-child(3) i { background: #c1c7c8; }
+#root .assessment-performance-body li strong { color: #27343c; font: 600 10px 'Satoshi', sans-serif; }
+#root .assessment-correct-note { margin: 2px 0 0; color: #69737a; font: 400 10px 'Satoshi', sans-serif; }
+#root .assessment-side-list { padding: 12px 10px 8px; }
+#root .assessment-side-list > button, #root .assessment-history-list > div { display: flex; width: 100%; min-height: 49px; align-items: center; gap: 8px; padding: 5px 3px; color: #26343d; text-align: left; background: transparent; border: 0; border-top: 1px solid #d9dddd; cursor: pointer; }
+#root .assessment-side-list > button:hover { background: rgba(255,255,255,.58); }
+#root .assessment-side-list > button > span, #root .assessment-history-list > div > span { display: grid; flex: 0 0 33px; width: 33px; height: 33px; place-items: center; color: #293943; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 4px; }
+#root .assessment-side-list > button > i, #root .assessment-history-list > div > i { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; font-style: normal; }
+#root .assessment-side-list > button strong, #root .assessment-history-list strong { overflow: hidden; color: #28353d; font: 600 10px 'Satoshi', sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+#root .assessment-side-list > button small, #root .assessment-history-list small { color: #667179; font: 400 9px 'Satoshi', sans-serif; }
+#root .assessment-side-list > button > svg { color: #3b4951; }
+#root .assessment-history-list > div em { color: #36434b; background: rgba(23,35,44,.04); border: 1px solid #d0d5d6; border-radius: 4px; padding: 3px 5px; font: 500 9px 'Satoshi', sans-serif; font-style: normal; }
+#root .assessment-side-list > p { color: #657078; font: 400 10px 'Satoshi', sans-serif; }
+#root .assessment-practice-panel > header select { color: #28353d !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c7cccd !important; border-radius: 4px !important; }
+#root .assessment-topic-list article { border-color: #d9dddd; }
+#root .assessment-topic-list article > span, #root .assessment-attempt-list article > span { color: #293943; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 4px; }
+#root .assessment-topic-list strong, #root .assessment-attempt-list strong { color: #27343c !important; font: 600 12px 'Satoshi', sans-serif !important; }
+#root .assessment-topic-list small, #root .assessment-attempt-list small { color: #67727a !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .assessment-topic-list article > button { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; border-radius: 4px !important; }
+#root .assessment-attempt-list article em { color: #3f6e5a !important; background: #eef3ef !important; border-color: #cad8cf !important; }
+#root .assessment-empty { color: #68737a !important; }
+#root .assessment-empty button { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; border-radius: 4px !important; }
+@media (max-width: 1150px) {
+  #root .assessment-main-grid { grid-template-columns: minmax(0,1fr) 285px; }
+  #root .assessment-curriculum-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  #root .assessment-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 760px) {
+  #root .student-assess-main { padding: 14px !important; }
+  #root .assessment-hero-art { display: none; }
+  #root .assessment-main-grid { grid-template-columns: 1fr; }
+  #root .assessment-heading { min-height: 110px; }
+  #root .assessment-side-column { display: grid; grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  #root .assessment-heading h1 { font-size: 36px !important; }
+  #root .assessment-heading p { font-size: 13px !important; }
+  #root .assessment-tabs { gap: 4px; }
+  #root .assessment-tabs button { padding: 7px 8px !important; font-size: 9px !important; }
+  #root .assessment-tabs button svg { width: 15px; height: 15px; }
+  #root .assessment-metrics { grid-template-columns: 1fr 1fr; }
+  #root .assessment-curriculum-grid { grid-template-columns: 1fr 1fr; }
+  #root .assessment-side-column { grid-template-columns: 1fr; }
+  #root .assessment-recommendation-grid { grid-template-columns: 1fr; }
+}
+
+
+/* My Twin view uses the same paper surface as the other student dashboard pages. */
+#root .student-twin-shell { background: #f6f7f5 !important; }
+#root .student-twin-main { max-width: none !important; margin: 0 auto !important; padding: 18px 24px 30px !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; }
+#root .student-twin-sidebar { color: #17232c !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; border-right: 1px solid #cbd0d1 !important; }
+#root .student-twin-sidebar > div:first-child, #root .student-twin-sidebar .app-sidebar-footer { border-color: #cbd0d1 !important; }
+#root .student-twin-sidebar .knowledge-twin-mark { color: #fff !important; background: #263741 !important; }
+#root .student-twin-sidebar .knowledge-twin-wordmark, #root .student-twin-sidebar .knowledge-twin-wordmark span { color: #17232c !important; }
+#root .student-twin-sidebar .knowledge-twin-wordmark em { color: #58646b !important; }
+#root .student-twin-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-twin-sidebar .sidebar-nav-button svg { color: #293943 !important; }
+#root .student-twin-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
+#root .student-twin-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .student-twin-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-twin-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
+#root .student-twin-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
+#root .student-twin-sidebar .app-sidebar-footer svg { color: #34414a !important; }
+#root .student-twin-shell .app-workspace > footer { color: #59636a !important; background: #f6f7f5 !important; border-top-color: #cbd0d1 !important; }
+#root .student-twin-page { width: 100% !important; color: #17232c !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-twin-topbar { margin: 0 0 19px !important; }
+#root .student-twin-topbar label { width: min(690px,78%); height: 42px; color: #46535b !important; background: rgba(255,255,255,.36) !important; border: 1px solid #c2c7c9 !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .student-twin-topbar label:focus-within { border-color: #7b878d !important; box-shadow: 0 0 0 2px rgba(47,62,71,.08) !important; }
+#root .student-twin-topbar input { color: #26343d !important; font: 400 13px 'Satoshi', sans-serif !important; }
+#root .student-twin-topbar input::placeholder { color: #68737a !important; }
+#root .student-twin-topbar > button { color: #26343d !important; }
+#root .student-twin-topbar > button i { background: #68747a !important; box-shadow: none !important; }
+#root .student-twin-heading { min-height: 136px; align-items: center !important; margin: 0 0 10px !important; }
+#root .student-twin-heading > div > span { color: #58646b !important; font: 600 12px 'Satoshi', sans-serif !important; letter-spacing: .12em !important; }
+#root .student-twin-heading h1 { margin: 4px 0 0 !important; color: #111d2a !important; font: 800 clamp(38px,4.2vw,58px)/1.04 'Satoshi', sans-serif !important; letter-spacing: -.05em !important; }
+#root .student-twin-heading h1 b { color: #34434c !important; }
+#root .student-twin-heading p { color: #58646b !important; font: 400 16px 'Satoshi', sans-serif !important; }
+#root .student-twin-heading blockquote { color: #2b3942 !important; font: italic 500 18px/1.4 'Satoshi', sans-serif !important; }
+#root .student-twin-tabs { min-height: 40px; gap: 7px; margin: 0 0 14px; border: 0 !important; }
+#root .student-twin-tabs button { height: 37px; padding: 0 13px !important; color: #46535a !important; background: rgba(255,255,255,.27) !important; border: 1px solid #cbd0d1 !important; border-radius: 5px !important; font: 500 11px 'Satoshi', sans-serif !important; }
+#root .student-twin-tabs button:hover { color: #17232c !important; background: rgba(255,255,255,.7) !important; }
+#root .student-twin-tabs button.active { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+#root .student-twin-tabs button.active:after { display: none !important; }
+#root .student-twin-top-grid { gap: 13px; margin-bottom: 13px; }
+#root .student-twin-profile, #root .student-twin-style, #root .student-twin-section { color: #17232c !important; background: rgba(255,255,255,.32) !important; border: 1px solid #c8cdce !important; border-radius: 5px !important; box-shadow: none !important; }
+#root .student-twin-profile { min-height: 330px; grid-template-columns: minmax(200px,.85fr) minmax(260px,1.15fr); }
+#root .student-twin-portrait { display: grid; min-height: 330px; place-items: center; overflow: hidden; color: #2d3c45; background: repeating-linear-gradient(132deg,rgba(42,47,51,.016) 0,rgba(42,47,51,.016) .6px,transparent .6px,transparent 9px),rgba(255,255,255,.24) !important; border-right: 1px solid #d2d6d7 !important; }
+#root .student-twin-brain-art { width: 150px; height: 150px; stroke-width: .9; }
+#root .student-twin-book-art { position: absolute; width: 54px; height: 54px; margin: 130px 0 0 110px; stroke-width: 1; }
+#root .student-twin-sprout-art { position: absolute; width: 42px; height: 48px; margin: -130px 0 0 115px; stroke-width: 1; }
+#root .student-twin-traits { gap: 9px; padding: 18px 17px; }
+#root .student-twin-page h2 { color: #17232c !important; font: 700 18px 'Satoshi', sans-serif !important; }
+#root .student-twin-traits > p, #root .student-twin-style > p, #root .student-twin-section > p { color: #5f6a71 !important; font: 400 11px/1.45 'Satoshi', sans-serif !important; }
+#root .student-twin-traits article > span, #root .student-twin-suggestion > span { color: #293943 !important; background: rgba(23,35,44,.045) !important; border: 1px solid #d1d5d5 !important; border-radius: 5px !important; }
+#root .student-twin-traits strong, #root .student-twin-growth-row strong, #root .student-twin-skill-copy strong { color: #26343d !important; font: 600 12px 'Satoshi', sans-serif !important; }
+#root .student-twin-traits small, #root .student-twin-growth-row small, #root .student-twin-skill-copy small { color: #657078 !important; font: 400 10px/1.4 'Satoshi', sans-serif !important; }
+#root .student-twin-style { padding: 17px 16px 14px; }
+#root .student-twin-meter { grid-template-columns: minmax(90px,1fr) minmax(70px,1.2fr) 34px; gap: 8px; margin-bottom: 13px; color: #566169; font: 400 10px 'Satoshi', sans-serif; }
+#root .student-twin-meter > div, #root .student-twin-progress { height: 10px; background: #e5e8e7; border: 1px solid #d3d7d7; border-radius: 5px; }
+#root .student-twin-meter > div i, #root .student-twin-progress i { background: repeating-linear-gradient(132deg,rgba(255,255,255,.25) 0,rgba(255,255,255,.25) 1px,transparent 1px,transparent 5px),#35434c; box-shadow: none; }
+#root .student-twin-meter b, #root .student-twin-skill-row > b { color: #293740 !important; font: 600 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-suggestion { margin-top: 3px; padding: 9px; background: rgba(255,255,255,.4); border: 1px solid #d0d5d5; border-radius: 5px; }
+#root .student-twin-suggestion strong { color: #25333c !important; font: 600 11px 'Satoshi', sans-serif !important; }
+#root .student-twin-suggestion p { color: #5d6870 !important; font: 400 10px/1.4 'Satoshi', sans-serif !important; }
+#root .student-twin-bottom-grid { gap: 13px; }
+#root .student-twin-section { min-height: 210px; padding: 15px; }
+#root .student-twin-section-heading { margin-bottom: 8px; }
+#root .student-twin-section-heading > span { color: #59656c !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-skill-row { grid-template-columns: 32px minmax(70px,1fr) minmax(55px,.8fr) 34px; gap: 7px; min-height: 44px; border-color: #d9dddd; }
+#root .student-twin-skill-icon, #root .student-twin-growth-row > span { color: #293943 !important; background: rgba(23,35,44,.045) !important; border: 1px solid #d1d5d5; border-radius: 4px; width: 30px; height: 30px; }
+#root .student-twin-skill-icon svg { width: 16px; height: 16px; }
+#root .student-twin-skill-copy strong { font-size: 11px !important; }
+#root .student-twin-skill-copy small { font-size: 9px !important; }
+#root .student-twin-progress { height: 9px; }
+#root .student-twin-practice { color: #34434c !important; font: 500 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-practice:hover { color: #17232c !important; }
+#root .student-twin-empty-copy, #root .student-twin-empty { color: #657078 !important; font: 400 11px/1.45 'Satoshi', sans-serif !important; }
+#root .student-twin-zero-cta { margin-top: 13px; padding: 13px; background: rgba(255,255,255,.34); border: 1px solid #c8cdce; border-left: 3px solid #35434c; border-radius: 5px; }
+#root .student-twin-zero-cta strong { color: #26343d !important; font: 600 12px 'Satoshi', sans-serif !important; }
+#root .student-twin-zero-cta span { color: #616c73 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-zero-cta button, #root .student-twin-misconceptions button { min-height: 34px; color: #fff !important; background: #303a41 !important; border: 1px solid #303a41 !important; border-radius: 4px !important; font: 500 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-zero-cta button.secondary { color: #34414a !important; background: rgba(255,255,255,.35) !important; border-color: #aeb6b9 !important; }
+#root .student-twin-misconceptions { margin-top: 13px; padding: 15px; background: rgba(255,255,255,.32) !important; border: 1px solid #c8cdce !important; }
+#root .student-twin-misconceptions > p, #root .student-twin-misconceptions article small { color: #616c73 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .student-twin-misconceptions article { border-color: #d9dddd; }
+#root .student-twin-misconceptions article strong { color: #27343c !important; font: 600 11px 'Satoshi', sans-serif !important; }
+@media (max-width: 760px) {
+  #root .student-twin-main { padding: 14px !important; }
+  #root .student-twin-heading { min-height: 110px; }
+  #root .student-twin-heading blockquote { color: #536068 !important; }
+}
+
+
+/* Progress view follows the shared student paper-and-ink dashboard theme. */
+#root .student-progress-shell { background: #f6f7f5 !important; }
+#root .student-progress-main { max-width: none !important; margin: 0 auto !important; padding: 18px 24px 30px !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; }
+#root .student-progress-sidebar { color: #17232c !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; border-right: 1px solid #cbd0d1 !important; }
+#root .student-progress-sidebar > div:first-child, #root .student-progress-sidebar .app-sidebar-footer { border-color: #cbd0d1 !important; }
+#root .student-progress-sidebar .knowledge-twin-mark { color: #fff !important; background: #263741 !important; }
+#root .student-progress-sidebar .knowledge-twin-wordmark, #root .student-progress-sidebar .knowledge-twin-wordmark span { color: #17232c !important; }
+#root .student-progress-sidebar .knowledge-twin-wordmark em { color: #58646b !important; }
+#root .student-progress-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-progress-sidebar .sidebar-nav-button svg { color: #293943 !important; }
+#root .student-progress-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
+#root .student-progress-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .student-progress-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-progress-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
+#root .student-progress-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
+#root .student-progress-sidebar .app-sidebar-footer svg { color: #34414a !important; }
+#root .student-progress-shell .app-workspace > footer { color: #59636a !important; background: #f6f7f5 !important; border-top-color: #cbd0d1 !important; }
+#root .progress-dashboard { width: 100% !important; color: #17232c !important; font-family: 'Satoshi', sans-serif !important; }
+#root .progress-topbar { margin: 0 0 18px !important; }
+#root .progress-topbar label { width: min(690px,78%); height: 42px; color: #46535b !important; background: rgba(255,255,255,.36) !important; border: 1px solid #c2c7c9 !important; border-radius: 6px !important; }
+#root .progress-topbar input { color: #26343d !important; font: 400 13px 'Satoshi', sans-serif !important; }
+#root .progress-topbar input::placeholder { color: #68737a !important; }
+#root .progress-topbar > button { color: #26343d !important; }
+#root .progress-topbar > button span { background: #68747a !important; box-shadow: none !important; }
+#root .progress-heading { min-height: 150px; align-items: center !important; margin: 0 0 8px !important; }
+#root .progress-eyebrow { color: #58646b !important; font: 600 12px 'Satoshi', sans-serif !important; letter-spacing: .12em !important; }
+#root .progress-heading h1 { margin: 4px 0 0 !important; color: #111d2a !important; font: 800 clamp(38px,4.2vw,58px)/1.04 'Satoshi', sans-serif !important; letter-spacing: -.05em !important; }
+#root .progress-heading p { color: #58646b !important; font: 400 16px 'Satoshi', sans-serif !important; }
+#root .progress-hero-art { display: flex; min-width: 390px; height: 145px; align-items: center; justify-content: flex-end; gap: clamp(22px,4vw,58px); color: #263740; }
+#root .progress-hero-art > div { position: relative; display: flex; width: 248px; height: 135px; align-items: flex-end; justify-content: center; color: #293943; }
+#root .progress-hero-art > div svg:first-child { width: 205px; height: 105px; stroke-width: .9; }
+#root .progress-hero-art > div svg:nth-child(2) { position: absolute; top: 4px; left: 55%; width: 44px; height: 52px; stroke-width: 1; }
+#root .progress-hero-art > div svg:nth-child(3) { position: absolute; top: 22px; left: 14%; width: 36px; height: 44px; stroke-width: 1; }
+#root .progress-hero-art blockquote { max-width: 155px; margin: 0 5px 0 0 !important; color: #2b3942 !important; text-align: center; font: italic 500 18px/1.4 'Satoshi', sans-serif !important; transform: rotate(-5deg); }
+#root .progress-tabs { min-height: 39px; gap: 7px; margin: 0 0 13px !important; border: 0 !important; }
+#root .progress-tabs button { min-width: 0; height: 36px; padding: 0 12px !important; color: #46535a !important; background: rgba(255,255,255,.27) !important; border: 1px solid #cbd0d1 !important; border-radius: 5px !important; font: 500 11px 'Satoshi', sans-serif !important; }
+#root .progress-tabs button:hover { color: #17232c !important; background: rgba(255,255,255,.68) !important; }
+#root .progress-tabs button.is-active { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+#root .progress-tabs button::after { display: none !important; content: none !important; }
+#root .progress-tabs button.is-active::after { display: none !important; transform: none !important; background: transparent !important; box-shadow: none !important; }
+#root .progress-metrics { gap: 10px; margin-bottom: 13px; }
+#root .progress-metric { min-height: 82px; gap: 10px; padding: 10px; color: #17232c !important; background: rgba(255,255,255,.34) !important; border: 1px solid #c8cdce !important; border-radius: 5px !important; }
+#root .progress-metric:hover { background: rgba(255,255,255,.7) !important; border-color: #aeb6b9 !important; transform: none; box-shadow: none; }
+#root .progress-metric > span { flex: 0 0 42px; width: 42px; height: 42px; color: #293943 !important; background: rgba(23,35,44,.045) !important; border: 1px solid #d1d5d5 !important; border-radius: 5px !important; }
+#root .progress-metric small { color: #5d6870 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .progress-metric strong { color: #17232c !important; font: 700 20px 'Satoshi', sans-serif !important; }
+#root .progress-metric em { color: #667179 !important; font: 400 9px 'Satoshi', sans-serif !important; }
+#root .progress-overview-grid { grid-template-columns: minmax(0,1.2fr) minmax(0,.8fr); gap: 13px; margin-bottom: 13px; }
+#root .progress-panel { min-width: 0; padding: 15px !important; color: #17232c !important; background: rgba(255,255,255,.32) !important; border: 1px solid #c8cdce !important; border-radius: 5px !important; box-shadow: none !important; }
+#root .progress-panel > header { margin-bottom: 10px; }
+#root .progress-panel > header h2 { color: #17232c !important; font: 700 17px 'Satoshi', sans-serif !important; }
+#root .progress-panel > header h2 svg { color: #35434c !important; }
+#root .progress-panel > header p { color: #606b72 !important; font: 400 11px 'Satoshi', sans-serif !important; }
+#root .progress-panel > header > span { color: #5f6a71 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .progress-distribution-body { min-height: 150px; gap: 14px; }
+#root .progress-donut { background: conic-gradient(#35434c 0 var(--progress-value),#e1e4e3 var(--progress-value) 100%) !important; box-shadow: none !important; }
+#root .progress-donut > div { background: #f7f8f6 !important; border: 1px solid #d4d8d8 !important; }
+#root .progress-donut strong { color: #1d2b34 !important; font: 700 21px 'Satoshi', sans-serif !important; }
+#root .progress-donut small { color: #606b72 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .progress-legend { gap: 11px; }
+#root .progress-legend p { color: #58646b !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .progress-legend p strong { color: #26343d !important; font: 600 10px 'Satoshi', sans-serif !important; }
+#root .progress-legend i, #root .progress-legend i.is-correct { background: #35434c !important; }
+#root .progress-legend i.is-review { background: #899397 !important; }
+#root .progress-legend i.is-neutral { background: #c1c7c8 !important; }
+#root .progress-next { background: rgba(255,255,255,.32) !important; }
+#root .progress-next h2 { color: #1f2c35 !important; font: 600 20px/1.3 'Satoshi', sans-serif !important; }
+#root .progress-next p { color: #606b72 !important; font: 400 11px/1.5 'Satoshi', sans-serif !important; }
+#root .progress-next button, #root .progress-tab-panel > header > button { min-height: 34px; color: #fff !important; background: #303a41 !important; border: 1px solid #303a41 !important; border-radius: 4px !important; font: 500 10px 'Satoshi', sans-serif !important; box-shadow: none !important; }
+#root .progress-next button:last-child { color: #fff !important; background: #303a41 !important; }
+#root .progress-next button:hover, #root .progress-tab-panel > header > button:hover { background: #414d54 !important; transform: none; box-shadow: none; }
+#root .progress-activity { margin-top: 0; }
+#root .progress-event-list { gap: 5px; }
+#root .progress-event { min-height: 50px; padding: 6px 8px; color: #26343d; background: rgba(255,255,255,.33); border: 1px solid #d3d7d7; border-radius: 5px; }
+#root .progress-event:hover { background: rgba(255,255,255,.72); border-color: #aeb6b9; transform: none; }
+#root .progress-event > span { flex: 0 0 34px; width: 34px; height: 34px; color: #293943; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 4px; }
+#root .progress-event > span.is-correct { color: #3f6e5a; background: #eef3ef; border-color: #cad8cf; }
+#root .progress-event > div strong { color: #26343d !important; font: 600 11px 'Satoshi', sans-serif !important; }
+#root .progress-event > div small { color: #657078 !important; font: 400 9px 'Satoshi', sans-serif !important; }
+#root .progress-event > em { color: #45535b !important; background: rgba(23,35,44,.035); border-color: #d1d6d6; border-radius: 4px; font: 500 9px 'Satoshi', sans-serif !important; }
+#root .progress-event > em.is-correct { color: #3f6e5a !important; border-color: #c7d5cc; }
+#root .progress-empty { color: #657078 !important; border-color: #c8cdce; border-radius: 5px; font: 400 11px 'Satoshi', sans-serif !important; }
+#root .progress-tab-panel { margin-bottom: 12px; }
+#root .progress-evidence-strip { color: #26343d; background: rgba(255,255,255,.36); border: 1px solid #d0d5d5; border-radius: 5px; }
+#root .progress-evidence-strip > span { color: #293943; background: rgba(23,35,44,.045); border: 1px solid #d1d5d5; border-radius: 4px; }
+#root .progress-evidence-strip strong { color: #27343c !important; font: 600 12px 'Satoshi', sans-serif !important; }
+#root .progress-evidence-strip small { color: #657078 !important; font: 400 10px 'Satoshi', sans-serif !important; }
+#root .progress-time-panel { color: #35434c; background: rgba(255,255,255,.34); border: 1px solid #c8cdce; border-radius: 5px; }
+#root .progress-time-panel strong { color: #26343d !important; font: 600 13px 'Satoshi', sans-serif !important; }
+#root .progress-time-panel p { color: #616c73 !important; font: 400 11px/1.45 'Satoshi', sans-serif !important; }
+#root .progress-time-panel button { color: #fff !important; background: #303a41 !important; border: 1px solid #303a41; border-radius: 4px; font: 500 10px 'Satoshi', sans-serif; }
+@media (max-width: 1100px) {
+  #root .progress-overview-grid { grid-template-columns: 1fr 1fr; }
+  #root .progress-hero-art { min-width: 330px; gap: 15px; }
+}
+@media (max-width: 760px) {
+  #root .student-progress-main { padding: 14px !important; }
+  #root .progress-heading { min-height: 110px; }
+  #root .progress-hero-art { display: none; }
+  #root .progress-overview-grid { grid-template-columns: 1fr; }
+  #root .progress-tabs { overflow-x: auto; }
+}
+@media (max-width: 520px) {
+  #root .progress-heading h1 { font-size: 38px !important; }
+  #root .progress-heading p { font-size: 13px !important; }
+  #root .progress-metrics { grid-template-columns: 1fr 1fr; }
+  #root .progress-metric { align-items: flex-start; flex-direction: column; }
+  #root .progress-metric > span { width: 36px; height: 36px; }
+  #root .progress-tabs button { padding: 0 8px !important; font-size: 9px !important; }
+  #root .progress-tabs button svg { width: 15px; height: 15px; }
+  #root .progress-distribution-body { flex-wrap: wrap; justify-content: flex-start; }
+  #root .progress-legend { min-width: 120px; }
+  #root .progress-time-panel { align-items: flex-start; flex-wrap: wrap; }
+}
+
+/* Student study groups: shared paper and ink surface */
+#root .student-groups-shell { background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; }
+#root .student-groups-sidebar { color: #17232c !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; border-right: 1px solid #cbd0d1 !important; }
+#root .student-groups-sidebar > div:first-child, #root .student-groups-sidebar .app-sidebar-footer { border-color: #cbd0d1 !important; }
+#root .student-groups-sidebar .knowledge-twin-mark { color: #fff !important; background: #20323d !important; }
+#root .student-groups-sidebar .knowledge-twin-wordmark, #root .student-groups-sidebar .knowledge-twin-wordmark span { color: #17232c !important; }
+#root .student-groups-sidebar .knowledge-twin-wordmark em { color: #58646b !important; }
+#root .student-groups-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-groups-sidebar .sidebar-nav-button svg { color: #293943 !important; }
+#root .student-groups-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
+#root .student-groups-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #303a41 !important; border: 1px solid #303a41 !important; border-radius: 6px !important; box-shadow: none !important; }
+#root .student-groups-sidebar .sidebar-nav-button.is-active svg { color: #fff !important; }
+#root .student-groups-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
+#root .student-groups-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
+#root .student-groups-sidebar .app-sidebar-footer svg { color: #34414a !important; }
+#root .student-groups-main { max-width: none !important; margin: 0 auto !important; padding: 14px 24px 24px !important; background-color: #f6f7f5 !important; background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important; }
+#root .student-groups-main .team-dashboard { max-width: 1520px !important; gap: 12px !important; color: #17232c !important; font-family: 'Satoshi', sans-serif !important; }
+#root .student-groups-main .team-topbar { margin: 0 0 2px !important; }
+#root .student-groups-main .team-topbar label { width: min(690px,78%) !important; height: 40px !important; color: #46535b !important; background: rgba(255,255,255,.34) !important; border: 1px solid #c2c7c9 !important; border-radius: 6px !important; }
+#root .student-groups-main .team-topbar label:focus-within { border-color: #59666d !important; box-shadow: 0 0 0 2px rgba(48,58,65,.08) !important; }
+#root .student-groups-main .team-topbar input { color: #26343d !important; font: 400 13px 'Satoshi', sans-serif !important; }
+#root .student-groups-main .team-topbar input::placeholder { color: #68737a !important; }
+#root .student-groups-main .team-topbar > button { color: #26343d !important; background: transparent !important; }
+#root .student-groups-main .team-topbar > button span { background: #68747a !important; box-shadow: none !important; }
+#root .student-groups-main .team-heading { min-height: 140px; align-items: center !important; margin: 0 !important; padding: 8px 6px 0 !important; }
+#root .student-groups-main .team-heading > div:first-child > div:first-child { gap: 10px !important; }
+#root .student-groups-main .team-heading > div:first-child > div:first-child > span:first-child { color: #58646b !important; font: 600 12px 'Satoshi', sans-serif !important; letter-spacing: .15em !important; }
+#root .student-groups-main .team-heading .badge-purple, #root .student-groups-main .badge-purple { color: #45545c !important; background: rgba(23,35,44,.045) !important; border: 1px solid #cbd0d1 !important; border-radius: 4px !important; box-shadow: none !important; }
+#root .student-groups-main .team-heading h1 { margin: 5px 0 0 !important; color: #111d2a !important; font: 800 clamp(38px,4.2vw,58px)/1.04 'Satoshi', sans-serif !important; letter-spacing: -.05em !important; }
+#root .student-groups-main .team-heading h1:first-letter { color: #111d2a !important; }
+#root .student-groups-main .team-heading h1 span { color: #111d2a !important; }
+#root .student-groups-main .team-heading p { color: #58646b !important; font: 400 16px 'Satoshi', sans-serif !important; }
+#root .student-groups-main .team-heading > div:last-child { gap: 8px !important; }
+#root .student-groups-main .team-heading button, #root .student-groups-main .team-overview-grid button, #root .student-groups-main .team-detail-card button { min-height: 36px; color: #273741 !important; background: rgba(255,255,255,.42) !important; border: 1px solid #c4cbcd !important; border-radius: 5px !important; box-shadow: none !important; transition: background-color .16s ease,border-color .16s ease !important; }
+#root .student-groups-main .team-heading button:hover, #root .student-groups-main .team-overview-grid button:hover, #root .student-groups-main .team-detail-card button:hover { color: #17232c !important; background: rgba(255,255,255,.78) !important; border-color: #9ca8ad !important; transform: none !important; }
+#root .student-groups-main .team-heading button.btn-primary { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+#root .student-groups-main .team-heading button.btn-primary:hover { background: #414d54 !important; }
+#root .student-groups-main .team-tabs { min-height: 40px !important; gap: 7px !important; margin: 0 0 2px !important; border: 0 !important; }
+#root .student-groups-main .team-tabs button { height: 36px !important; padding: 0 14px !important; color: #46535a !important; background: rgba(255,255,255,.27) !important; border: 1px solid #cbd0d1 !important; border-radius: 5px !important; font: 500 11px 'Satoshi', sans-serif !important; }
+#root .student-groups-main .team-tabs button:hover { color: #17232c !important; background: rgba(255,255,255,.68) !important; }
+#root .student-groups-main .team-tabs button.is-active { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+#root .student-groups-main .team-tabs button::after, #root .student-groups-main .team-tabs button.is-active::after { display: none !important; content: none !important; background: transparent !important; box-shadow: none !important; }
+#root .student-groups-main .team-overview-grid { grid-template-columns: minmax(280px,.9fr) minmax(420px,1.6fr) !important; gap: 13px !important; }
+#root .student-groups-main .team-overview-grid > div { gap: 10px !important; }
+#root .student-groups-main .team-overview-grid > div > span { color: #58646b !important; font: 600 11px 'Satoshi',sans-serif !important; letter-spacing: .1em !important; }
+#root .student-groups-main .team-overview-grid .card-panel, #root .student-groups-main .team-detail-card, #root .student-groups-main .team-list-item, #root .student-groups-main .team-session-item { color: #26343d !important; background: rgba(255,255,255,.36) !important; border: 1px solid #c8cdce !important; border-radius: 5px !important; box-shadow: none !important; }
+#root .student-groups-main .team-overview-grid .card-panel:hover { background: rgba(255,255,255,.64) !important; border-color: #aeb6b9 !important; transform: none !important; }
+#root .student-groups-main .team-overview-grid .card-panel h2, #root .student-groups-main .team-overview-grid .card-panel h3, #root .student-groups-main .team-overview-grid .card-panel h4, #root .student-groups-main .team-overview-grid .card-panel strong, #root .student-groups-main .team-detail-card h2, #root .student-groups-main .team-detail-card h3, #root .student-groups-main .team-detail-card strong { color: #17232c !important; }
+#root .student-groups-main .team-overview-grid .card-panel p, #root .student-groups-main .team-overview-grid .card-panel div, #root .student-groups-main .team-detail-card p, #root .student-groups-main .team-list-item small, #root .student-groups-main .team-session-item small { color: #606b72 !important; }
+#root .student-groups-main .team-overview-grid .card-panel span, #root .student-groups-main .team-overview-grid .card-panel svg, #root .student-groups-main .team-overview-grid .card-panel h3 svg, #root .student-groups-main .team-detail-card > svg { color: #35434c !important; }
+#root .student-groups-main [style*="color: rgb(215, 186, 255)"], #root .student-groups-main [style*="color: rgb(192, 132, 252)"], #root .student-groups-main [style*="color: rgb(168, 85, 247)"], #root .student-groups-main [style*="color: #d7baff"], #root .student-groups-main [style*="color: #a855f7"] { color: #35434c !important; }
+#root .student-groups-main [style*="rgba(104, 0, 203"], #root .student-groups-main [style*="rgba(192, 132, 252"], #root .student-groups-main [style*="border-color: rgb(168, 85, 247)"] { background-color: rgba(23,35,44,.045) !important; border-color: #cbd0d1 !important; box-shadow: none !important; }
+#root .student-groups-main .team-overview-grid .card-panel > div[style*="linear-gradient"] { display: none !important; }
+#root .student-groups-main .team-overview-grid .card-panel [style*="rgba(104, 0, 203"], #root .student-groups-main .team-overview-grid .card-panel [style*="rgba(192, 132, 252"] { background: rgba(23,35,44,.045) !important; border-color: #cbd0d1 !important; }
+#root .student-groups-main .team-overview-grid .card-panel [style*="rgba(255, 255, 255"] { background: rgba(23,35,44,.035) !important; border-color: #d1d6d6 !important; }
+#root .student-groups-main .progress-container, #root .student-groups-main .team-progress-track { overflow: hidden; background: #e1e4e3 !important; border: 1px solid #cbd0d1 !important; border-radius: 99px !important; }
+#root .student-groups-main .progress-bar-fill, #root .student-groups-main .team-progress-track i { background: #35434c !important; }
+#root .student-groups-main .team-progress-track i { display: block; height: 100%; border-radius: inherit; }
+#root .student-groups-main .team-card-eyebrow { color: #58646b !important; }
+#root .student-groups-main .team-detail-grid { grid-template-columns: minmax(240px,.8fr) minmax(320px,1.2fr) !important; gap: 13px !important; }
+#root .student-groups-main .team-detail-card { padding: 20px !important; }
+#root .student-groups-main .team-detail-card .team-session-item, #root .student-groups-main .team-detail-card .team-list-item { margin: 9px 0; padding: 12px !important; }
+#root .student-groups-main .team-detail-icon { color: #35434c !important; background: rgba(23,35,44,.045) !important; border: 1px solid #d1d5d5 !important; border-radius: 4px !important; }
+#root .student-groups-main .team-empty { color: #657078 !important; border-color: #c8cdce !important; }
+#root .student-groups-main > div[style*="position: fixed"] { background: rgba(18,26,32,.48) !important; backdrop-filter: blur(3px) !important; }
+#root .student-groups-main > div[style*="position: fixed"] > .card-panel { color: #26343d !important; background: #f7f8f6 !important; border: 1px solid #c8cdce !important; border-radius: 6px !important; box-shadow: 0 12px 36px rgba(20,30,36,.16) !important; }
+#root .student-groups-main > div[style*="position: fixed"] h3 { color: #17232c !important; }
+#root .student-groups-main > div[style*="position: fixed"] label { color: #46535a !important; }
+#root .student-groups-main > div[style*="position: fixed"] input { color: #26343d !important; background: #fff !important; border: 1px solid #c2c7c9 !important; }
+#root .student-groups-main > div[style*="position: fixed"] button[type="submit"] { color: #fff !important; background: #303a41 !important; border-color: #303a41 !important; }
+@media (max-width: 760px) {
+  #root .student-groups-main { padding: 12px 14px 20px !important; }
+  #root .student-groups-main .team-heading { min-height: 0; padding: 12px 2px !important; }
+  #root .student-groups-main .team-overview-grid, #root .student-groups-main .team-detail-grid { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 520px) {
+  #root .student-groups-main .team-heading h1 { font-size: 38px !important; }
+  #root .student-groups-main .team-heading p { font-size: 13px !important; }
+  #root .student-groups-main .team-heading > div:last-child { width: 100%; }
+  #root .student-groups-main .team-tabs { overflow-x: auto; }
+}

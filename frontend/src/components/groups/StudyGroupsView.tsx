@@ -163,17 +163,17 @@ export const StudyGroupsView: React.FC<StudyGroupsViewProps> = ({
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#d7baff' }}>
-              COLLABORATE AND GROW
+              STUDY GROUPS
             </span>
             <span className="badge badge-purple" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
               <Lock size={11} /> Personal Twins Private
             </span>
           </div>
           <h1 style={{ fontSize: '2rem', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-            My <span>Team</span>
+            Learn Together.
           </h1>
           <p style={{ fontSize: '0.92rem', color: '#9496a8', marginTop: '4px', maxWidth: '640px', lineHeight: 1.5 }}>
-            Learn together. Solve together. Grow together.
+            Discuss, solve, and grow with your peers.
           </p>
         </div>
 

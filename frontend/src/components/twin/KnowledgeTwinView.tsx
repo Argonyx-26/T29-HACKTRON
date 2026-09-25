@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowRight, Bell, BookOpen, Brain, ChartNoAxesCombined, CheckCircle2,
-  FileText, Lightbulb, Search, Sparkles, Target, TrendingUp
+  FileText, Lightbulb, Search, Sparkles, Target, TrendingUp, Sprout
 } from 'lucide-react';
 import { KnowledgeTwinView as KnowledgeTwinType } from '../../types';
 
@@ -64,7 +64,9 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
     <div className="student-twin-top-grid">
       {showSection('Learning Style') && <section className="student-twin-profile">
         <div className="student-twin-portrait" aria-hidden="true">
-          <img src="/student-twin-profile.png" alt="Digital learning profile illustration" />
+          <Brain className="student-twin-brain-art" />
+          <BookOpen className="student-twin-book-art" />
+          <Sprout className="student-twin-sprout-art" />
         </div>
         <div className="student-twin-traits">
           <h2>Your Learning Profile</h2><p>Built from your practice, assessments, and demonstrated understanding.</p>
