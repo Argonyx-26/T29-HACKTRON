@@ -60,15 +60,15 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
 
     try {
       const uploadRes = await apiClient.uploadDocument(file);
-      const review = await apiClient.getDocumentReview(uploadRes.document_id);
+      const review = await apiClient.parseDocument(uploadRes.id);
       setStage('ready');
       setSummaryData({
-        title: review.chapter?.title || file.name.replace('.pdf', ''),
-        subject: review.chapter?.subject || 'Custom Learning',
-        conceptsCount: review.concepts?.length || 5,
-        skillsCount: review.skills?.length || 4,
-        questionsCount: review.questions?.length || 3,
-        chapterId: review.chapter?.id || 'chap_current_elec'
+        title: review.title || file.name.replace(/\.pdf$/i, ''),
+        subject: 'Curriculum',
+        conceptsCount: (review.extracted_outline || []).reduce((count: number, unit: { topics?: string[] }) => count + (unit.topics?.length || 0), 0),
+        skillsCount: 0,
+        questionsCount: 0,
+        chapterId: review.document_id
       });
     } catch (e: any) {
       alert(`Processing error: ${e.message}`);
@@ -188,7 +188,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 <CheckCircle2 size={30} />
               </div>
               <h3 className="text-2xl font-black text-white tracking-tight">
-                Material Synthesized
+                Material Processed
               </h3>
               <p className="text-xs text-primary-light font-semibold mt-1">
                 {summaryData.title}
@@ -199,19 +199,11 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             <div className="p-4 bg-surface-container-low rounded-xl border border-white/10 flex flex-col gap-3 mb-6">
               <div className="flex items-center gap-3 text-xs text-gray-200">
                 <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span><strong className="text-white">{summaryData.conceptsCount} concepts</strong> detected and catalogued</span>
+                <span><strong className="text-white">{summaryData.conceptsCount} topic headings</strong> found in the document</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-gray-200">
                 <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span><strong className="text-white">{summaryData.skillsCount} skills</strong> synthesized and ordered</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-gray-200">
-                <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span><strong className="text-white">Prerequisites mapped</strong> into curriculum graph</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-gray-200">
-                <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span><strong className="text-white">Diagnostic questions prepared</strong> for learner evaluation</span>
+                <span>Resource stored in your teaching materials library</span>
               </div>
             </div>
 
@@ -220,7 +212,7 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 className="purple-glow-btn flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl"
                 onClick={() => onChapterReady(summaryData.chapterId)}
               >
-                Review & Start Diagnostic <ArrowRight size={15} />
+                Back to Materials <ArrowRight size={15} />
               </button>
             </div>
           </div>

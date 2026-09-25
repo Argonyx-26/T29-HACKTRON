@@ -60,7 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <aside className="app-sidebar" style={{
+      <aside className={`app-sidebar ${user.role === 'teacher' ? 'teacher-sidebar' : activeTab === 'home' ? 'student-home-sidebar' : activeTab === 'learn' ? 'student-learn-sidebar' : activeTab === 'assess' ? 'student-assess-sidebar' : activeTab === 'twin' ? 'student-twin-sidebar' : activeTab === 'progress' ? 'student-progress-sidebar' : activeTab === 'groups' ? 'student-groups-sidebar' : ''}`} style={{
         width: '240px',
         flexShrink: 0,
         background: '#000000',

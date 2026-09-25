@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KnowledgeTwinView, Chapter } from '../../types';
-import { ArrowRight, Bell, BookOpen, CheckSquare, Compass, FileText, Search, Sparkles, Target, TrendingUp } from 'lucide-react';
+import { ArrowRight, Bell, BookOpen, CheckSquare, Compass, FileText, Search, Sparkles, Sprout, Target, TrendingUp } from 'lucide-react';
 
 interface StudentHomeProps {
   twin: KnowledgeTwinView | null;
@@ -46,12 +46,7 @@ export const StudentHome: React.FC<StudentHomeProps> = ({ twin, activeChapter, o
         <div className="learning-main-column">
           <section className="continue-card">
             <div className="continue-copy"><span className="learning-eyebrow">CONTINUE LEARNING</span><h2>Pick up where you left off.</h2><div className="continue-current"><span className="continue-book-icon"><BookOpen size={23} /></span><div><small>{currentSubject} · {currentChapter}</small><strong>{currentSkill?.skill_name || 'Current Skill'}</strong><p>{currentSkill ? 'Continue from your last learning session.' : 'Choose a topic to start building your learning map.'}</p></div></div><div className="continue-actions"><button className="learning-primary" onClick={currentSkill ? onNavigateToAssess : onNavigateToLearn}>{currentSkill ? 'Continue Learning' : 'Explore Topics'} <ArrowRight size={16} /></button><button className="learning-secondary" onClick={onNavigateToLearn}>View Chapter</button></div></div>
-            <img
-              className="continue-art"
-              src="/home%20page%20pic.png"
-              aria-label="Student studying at a desk"
-              alt="Student studying at a desk"
-            />
+            <div className="continue-art" aria-hidden="true"><BookOpen /><Sprout /></div>
           </section>
 
           <section className="twin-summary">

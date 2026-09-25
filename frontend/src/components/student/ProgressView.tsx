@@ -50,8 +50,8 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateTo
       <div className="progress-topbar"><label><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search topics, skills, or questions..." aria-label="Search progress" /></label><button aria-label="Progress notifications"><Bell size={20} /><span /></button></div>
 
       <header className="progress-heading">
-        <div><span className="progress-eyebrow">TRACK YOUR JOURNEY</span><h1>Your Progress</h1><p>See how far you’ve come and what’s next.</p></div>
-        <blockquote>“Progress is a journey,<br />not a destination.”</blockquote>
+        <div><span className="progress-eyebrow">PROGRESS</span><h1>Your Learning Journey.</h1><p>Track your progress, build consistency, and see how far you have come.</p></div>
+        <div className="progress-hero-art" aria-hidden="true"><div><BookOpen /><TrendingUp /><Target /></div><blockquote>&ldquo;Small steps<br />today, bigger<br />understanding<br />tomorrow.&rdquo;</blockquote></div>
       </header>
 
       <nav className="progress-tabs" aria-label="Progress views" role="tablist">
