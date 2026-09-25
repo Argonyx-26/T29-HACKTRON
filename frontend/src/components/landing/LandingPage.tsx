@@ -12,8 +12,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onG
     <div className="landing-frame">
       <header className="landing-header">
         <a className="landing-brand" href="#top" aria-label="Knowledge Twin home">
-          <span className="landing-brand-mark"><Brain size={18} strokeWidth={1.8} /></span>
-          <span className="landing-brand-name">Knowledge <em>Twin</em></span>
+          <img src="/knowledge-twin-brand.svg" alt="Knowledge Twin — Learn deeper. Go further." className="landing-brand-image" />
         </a>
         <nav className="landing-actions" aria-label="Main navigation">
           <button className="landing-login" onClick={onNavigateToLogin}>Sign In</button>
@@ -62,7 +61,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onG
         <div className="landing-twin-visual"><div className="twin-orbit orbit-one" /><div className="twin-orbit orbit-two" /><div className="twin-core"><Sparkles size={28} /><strong>Your Twin</strong><small>Learning with you</small></div><div className="twin-skill skill-one"><Compass size={16} />Skill mastery</div><div className="twin-skill skill-two"><Target size={16} />Next steps</div><div className="twin-skill skill-three"><Brain size={16} />Understanding</div></div>
       </section>
 
-      <footer className="landing-footer"><a href="#top" className="landing-footer-brand"><span className="landing-brand-mark"><Brain size={16} /></span><span className="landing-brand-name">Knowledge <em>Twin</em></span></a><span>© 2025 Knowledge Twin Institute · Adaptive learning and cognitive diagnostics</span><button onClick={onNavigateToLogin}>Sign In</button></footer>
+      <footer className="landing-footer"><a href="#top" className="landing-footer-brand"><img src="/knowledge-twin-brand.svg" alt="Knowledge Twin — Learn deeper. Go further." className="landing-brand-image" /></a><span>© 2025 Knowledge Twin Institute · Adaptive learning and cognitive diagnostics</span><button onClick={onNavigateToLogin}>Sign In</button></footer>
     </div>
   </div>
 );

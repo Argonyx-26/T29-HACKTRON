@@ -7911,3 +7911,75 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
   #root .student-groups-main .team-heading > div:last-child { width: 100%; }
   #root .student-groups-main .team-tabs { overflow-x: auto; }
 }
+
+/* Keep the account card legible in the light paper sidebar themes. */
+#root .teacher-sidebar .app-sidebar-footer > div:last-child,
+#root .student-home-sidebar .app-sidebar-footer > div:last-child,
+#root .student-learn-sidebar .app-sidebar-footer > div:last-child,
+#root .student-assess-sidebar .app-sidebar-footer > div:last-child,
+#root .student-twin-sidebar .app-sidebar-footer > div:last-child,
+#root .student-progress-sidebar .app-sidebar-footer > div:last-child,
+#root .student-groups-sidebar .app-sidebar-footer > div:last-child {
+  background: rgba(255, 255, 255, .62) !important;
+  border: 1px solid #cbd0d1 !important;
+  border-radius: 8px !important;
+}
+#root .teacher-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-home-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-learn-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-assess-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-twin-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-progress-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child,
+#root .student-groups-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:first-child { color: #17232c !important; }
+#root .teacher-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-home-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-learn-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-assess-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-twin-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-progress-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child,
+#root .student-groups-sidebar .app-sidebar-footer > div:last-child > div:first-child > div:last-child > div:last-child { color: #59666e !important; }
+#root .teacher-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-home-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-learn-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-assess-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-twin-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-progress-sidebar .app-sidebar-footer > div:last-child > button,
+#root .student-groups-sidebar .app-sidebar-footer > div:last-child > button {
+  color: #263943 !important;
+  background: transparent !important;
+  border-color: #aeb8bc !important;
+}
+#root .teacher-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-home-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-learn-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-assess-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-twin-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-progress-sidebar .app-sidebar-footer > div:last-child > button:hover,
+#root .student-groups-sidebar .app-sidebar-footer > div:last-child > button:hover {
+  color: #17232c !important;
+  border-color: #697981 !important;
+  background: rgba(23, 35, 44, .045) !important;
+}
+
+/* Use the supplied Knowledge Twin identity as one consistent vector wordmark. */
+#root .landing-brand-image {
+  display: block !important;
+  width: 270px !important;
+  height: auto !important;
+  max-width: 100%;
+  object-fit: contain !important;
+  object-position: left center !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+#root .landing-footer-brand .landing-brand-image {
+  width: 220px !important;
+}
+#root .app-sidebar .knowledge-twin-brand-image {
+  display: block;
+  width: 205px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: normal;
+}

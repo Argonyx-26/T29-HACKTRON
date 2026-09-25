@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain, GraduationCap, UserCheck } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, GraduationCap, UserCheck } from 'lucide-react';
 import { User } from '../../types';
 import { learningRepository } from '../../services/learningRepository';
 
@@ -15,8 +15,7 @@ export const KnowledgeTwinLogo: React.FC<{ className?: string; onClick?: () => v
       className={`knowledge-twin-logo flex items-center gap-2.5 select-none cursor-pointer group transition-transform duration-200 hover:scale-105 ${className}`}
       title="Knowledge Twin — Return to Landing"
     >
-      <span className="knowledge-twin-mark"><Brain size={18} strokeWidth={1.8} /></span>
-      <span className="knowledge-twin-wordmark"><span>Knowledge</span> <em>Twin</em></span>
+      <img src="/knowledge-twin-brand.svg" alt="Knowledge Twin — Learn deeper. Go further." className="knowledge-twin-brand-image" />
     </div>
   );
 };
@@ -66,8 +65,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
       {/* Top Navigation Header */}
       <header className="landing-header login-header">
         <button className="landing-brand login-brand" type="button" onClick={onBackToLanding} aria-label="Knowledge Twin home">
-          <span className="landing-brand-mark"><Brain size={18} strokeWidth={1.8} /></span>
-          <span className="landing-brand-name">Knowledge <em>Twin</em></span>
+          <img src="/knowledge-twin-brand.svg" alt="Knowledge Twin — Learn deeper. Go further." className="landing-brand-image" />
         </button>
         <div className="landing-actions">
           <span className="login-nav-prompt">
