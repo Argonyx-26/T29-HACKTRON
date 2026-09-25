@@ -1,17 +1,10 @@
 import uvicorn
-import os
 import sys
+from pathlib import Path
 
-# Ensure backend root is in Python path
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from app.config import settings
+# Add backend directory to sys.path
+backend_dir = Path(__file__).resolve().parent
+sys.path.insert(0, str(backend_dir))
 
 if __name__ == "__main__":
-    uvicorn.run(
-        "app.main:app",
-        host=settings.HOST,
-        port=settings.PORT,
-        reload=settings.DEBUG,
-        log_level="info"
-    )
+    uvicorn.run("app.main:app", host="127.0.0.1", port=8000, reload=True)

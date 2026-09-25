@@ -1,56 +1,20 @@
-import pytest
-import sys
 import os
+from pathlib import Path
 
-# Add backend directory to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure tests run against an isolated local database and never drop or alter Supabase
+TEST_DB_PATH = Path(__file__).parent / "test.db"
+os.environ["DATABASE_URL"] = f"sqlite:///{TEST_DB_PATH}"
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
+from app.database import engine, Base
+from app.seed.seed_data import init_db, seed_database
 
-from app.database import Base, get_db
-from app.main import app
+def pytest_configure(config):
+    init_db()
+    seed_database(force_reset=True, include_demo_cohort=True)
 
-# In-memory SQLite for high-speed, isolated unit and integration tests
-TEST_DATABASE_URL = "sqlite:///:memory:"
-
-test_engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_database():
-    import app.models.all_models  # noqa: F401
-    Base.metadata.create_all(bind=test_engine)
-    yield
-    Base.metadata.drop_all(bind=test_engine)
-
-@pytest.fixture(scope="function")
-def db_session():
-    connection = test_engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
-
-@pytest.fixture(scope="function")
-def client(db_session):
-    def override_get_db():
+def pytest_unconfigure(config):
+    if TEST_DB_PATH.exists():
         try:
-            yield db_session
-        finally:
+            TEST_DB_PATH.unlink()
+        except Exception:
             pass
-
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()

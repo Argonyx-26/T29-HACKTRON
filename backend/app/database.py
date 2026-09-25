@@ -1,44 +1,45 @@
-from sqlalchemy import create_engine, text
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-from typing import Generator
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 from app.config import settings
 
-# Configure connection arguments depending on dialect
-connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
-    connect_args = {"check_same_thread": False}
+import urllib.parse
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args=connect_args,
-    pool_pre_ping=True
-)
+def get_normalized_database_url(url: str) -> str:
+    cleaned = (url or "").strip()
+    if cleaned.startswith("postgres://"):
+        cleaned = cleaned.replace("postgres://", "postgresql://", 1)
+    
+    # Safely handle special characters in database password (such as '@', '#', '%')
+    if "://" in cleaned and "@" in cleaned:
+        proto, rest = cleaned.split("://", 1)
+        creds, host_part = rest.rsplit("@", 1)
+        if ":" in creds:
+            user, raw_pass = creds.split(":", 1)
+            encoded_pass = urllib.parse.quote_plus(urllib.parse.unquote_plus(raw_pass))
+            return f"{proto}://{user}:{encoded_pass}@{host_part}"
+    return cleaned
+
+
+normalized_url = get_normalized_database_url(settings.DATABASE_URL)
+
+engine_kwargs = {}
+if "sqlite" in normalized_url:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+else:
+    # Supabase PostgreSQL / Transaction or Session Pooler optimizations
+    engine_kwargs["pool_pre_ping"] = True
+    engine_kwargs["pool_recycle"] = 300
+
+engine = create_engine(normalized_url, **engine_kwargs)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
-def get_db() -> Generator[Session, None, None]:
-    """
-    FastAPI dependency yielding an isolated SQLAlchemy database session.
-    Automatically commits or rolls back and closes after request completion.
-    """
+def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-def check_db_connection() -> bool:
-    """Verifies that the database is reachable and can respond to queries."""
-    try:
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return True
-    except Exception:
-        return False
-
-def init_db() -> None:
-    """Creates all registered database tables if they do not exist."""
-    import app.models.all_models  # noqa: F401
-    Base.metadata.create_all(bind=engine)

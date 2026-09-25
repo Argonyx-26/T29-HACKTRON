@@ -1,50 +1,49 @@
-from pydantic_settings import BaseSettings
-from pydantic import Field
-from typing import List, Optional
 import os
+from pathlib import Path
+from pydantic_settings import BaseSettings
+
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = BACKEND_DIR.parent
+
+from pydantic import ConfigDict, field_validator
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Knowledge Twin API"
+    APP_NAME: str = "Knowledge Twin"
+    TEAM_NAME: str = "HACKTRON"
     VERSION: str = "1.0.0"
-    API_V1_STR: str = "/api"
+    DEBUG: bool = True
     
-    # Environment & Server
-    APP_ENV: str = Field(default="development", env="APP_ENV")
-    DEBUG: bool = Field(default=True, env="DEBUG")
-    HOST: str = Field(default="0.0.0.0", env="HOST")
-    PORT: int = Field(default=8000, env="PORT")
-    SECRET_KEY: str = Field(default="knowledge-twin-secret-key-super-secure-change-in-prod", env="SECRET_KEY")
+    # Database: reads from DATABASE_URL env var if valid, otherwise fallback to local sqlite for tests/offline dev
+    DATABASE_URL: str = ""
     
-    # Database (Supabase PostgreSQL / Local SQLite fallback)
-    DATABASE_URL: str = Field(
-        default="sqlite:///./knowledge_twin.db",
-        env="DATABASE_URL"
-    )
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def validate_database_url(cls, v: str) -> str:
+        cleaned = (v or "").strip()
+        if cleaned and "[YOUR-PASSWORD]" not in cleaned and "[PASSWORD]" not in cleaned:
+            return cleaned
+        return f"sqlite:///{BACKEND_DIR / 'knowledge_twin.db'}"
     
-    # Supabase Credentials (optional for direct API access)
-    SUPABASE_URL: Optional[str] = Field(default=None, env="SUPABASE_URL")
-    SUPABASE_KEY: Optional[str] = Field(default=None, env="SUPABASE_KEY")
+    # Dual API Keys for LLM Failover
+    GEMINI_API_KEY_PRIMARY: str = os.getenv("GEMINI_API_KEY_PRIMARY", "")
+    GEMINI_API_KEY_SECONDARY: str = os.getenv("GEMINI_API_KEY_SECONDARY", "")
     
-    # LLM Integrations
-    OPENAI_API_KEY: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
-    GEMINI_API_KEY: Optional[str] = Field(default=None, env="GEMINI_API_KEY")
+    # Storage for uploaded files
+    UPLOAD_DIR: Path = BACKEND_DIR / "uploads"
     
-    # CORS
-    CORS_ORIGINS: List[str] = ["*"]
-    
-    # File Storage
-    UPLOAD_DIR: str = Field(
-        default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "uploads"),
-        env="UPLOAD_DIR"
-    )
+    @property
+    def is_postgres(self) -> bool:
+        return "postgres" in self.DATABASE_URL.lower()
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-        extra = "allow"
+    @property
+    def is_sqlite(self) -> bool:
+        return "sqlite" in self.DATABASE_URL.lower()
+
+    model_config = ConfigDict(
+        extra="allow",
+        env_file=[ROOT_DIR / ".env", BACKEND_DIR / ".env", ".env"]
+    )
 
 settings = Settings()
+settings.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-# Ensure uploads directory exists
-os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

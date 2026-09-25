@@ -3,62 +3,59 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.database import init_db
-from app.api import (
-    admin_router,
-    assessments_router,
-    chapters_router,
-    documents_router,
-    groups_router,
-    interventions_router,
-    subjects_router,
-    teacher_router,
-    twin_router
-)
+from app.seed.seed_data import init_db, seed_database
+from app.api import chapters, subjects, assessments, twin, interventions, documents, teacher, admin, groups
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Ensure database tables exist on startup
+    # Initialize DB & Seed Data automatically on boot
+    print(f"Starting {settings.APP_NAME} (Team: {settings.TEAM_NAME})...")
     init_db()
+    seed_database()
     yield
+    print("Shutting down Knowledge Twin backend...")
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
+    title=f"{settings.APP_NAME} API",
+    description="Intelligent diagnostic learning layer powered by deterministic misconception analysis and LLM escalation fallback.",
     version=settings.VERSION,
-    description="Cognitive Knowledge Twin API: Dynamic mastery modeling, BKT engine, automated interventions, and teacher analytics.",
     lifespan=lifespan
 )
 
-# CORS Middleware
+# CORS setup
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
+    )
 
-# Register all API routers
-app.include_router(admin_router, prefix=settings.API_V1_STR)
-app.include_router(assessments_router, prefix=settings.API_V1_STR)
-app.include_router(chapters_router, prefix=settings.API_V1_STR)
-app.include_router(documents_router, prefix=settings.API_V1_STR)
-app.include_router(groups_router, prefix=settings.API_V1_STR)
-app.include_router(interventions_router, prefix=settings.API_V1_STR)
-app.include_router(subjects_router, prefix=settings.API_V1_STR)
-app.include_router(teacher_router, prefix=settings.API_V1_STR)
-app.include_router(twin_router, prefix=settings.API_V1_STR)
+# Mount Routers under /api
+app.include_router(subjects.router, prefix="/api")
+app.include_router(chapters.router, prefix="/api")
+app.include_router(assessments.router, prefix="/api")
+app.include_router(twin.router, prefix="/api")
+app.include_router(interventions.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")
+app.include_router(teacher.router, prefix="/api")
+app.include_router(admin.router, prefix="/api")
+app.include_router(groups.router, prefix="/api")
 
 @app.get("/")
 def root():
     return {
-        "name": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "status": "online",
-        "docs_url": "/docs",
-        "health_check": "/health"
+        "product": settings.APP_NAME,
+        "team": settings.TEAM_NAME,
+        "tagline": "We solve learning gaps for students using an AI-powered living model of what they know.",
+        "status": "operational",
+        "docs_url": "/docs"
     }
 
-@app.get("/health")
+@app.get("/api/health")
 def health_check():
-    return {"status": "ok"}
+    return {
+        "status": "healthy",
+        "version": settings.VERSION,
+        "database": "sqlite_connected"
+    }

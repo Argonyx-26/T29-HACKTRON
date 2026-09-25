@@ -1,65 +1,99 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import uuid
+from typing import List, Dict, Any, Optional
 
 from app.database import get_db
-from app.models.all_models import Chapter, Topic, Subject
-from app.schemas.all_schemas import ChapterResponse, ChapterCreate, TopicResponse, TopicCreate
+from app.models.all_models import Chapter, Skill, Question
 
-router = APIRouter(prefix="/chapters", tags=["Chapters & Topics"])
+router = APIRouter(prefix="/chapters", tags=["Chapters"])
 
-@router.get("", response_model=List[ChapterResponse])
-def list_chapters(
-    subject_id: Optional[str] = Query(None, description="Filter chapters by subject ID"),
-    db: Session = Depends(get_db)
-):
-    query = db.query(Chapter)
-    if subject_id:
-        query = query.filter(Chapter.subject_id == subject_id)
-    return query.order_num.asc() if hasattr(query, 'order_num') else query.all()
+@router.get("", response_model=List[Dict[str, Any]])
+def list_chapters(db: Session = Depends(get_db), student_id: Optional[str] = None):
+    """List all available chapters (curated for all students; uploaded only for the owner)."""
+    query = db.query(Chapter).filter(Chapter.status == "active")
+    if student_id:
+        query = query.filter(
+            (Chapter.source_type == "curated") |
+            (Chapter.id == "chap_current_elec") |
+            (Chapter.creator_id == student_id)
+        )
+    chapters = query.all()
+    results = []
+    for c in chapters:
+        skills_count = db.query(Skill).filter(Skill.chapter_id == c.id).count()
+        questions_count = db.query(Question).filter(Question.chapter_id == c.id).count()
+        results.append({
+            "id": c.id,
+            "title": c.title,
+            "subject": c.subject,
+            "description": c.description,
+            "source_type": c.source_type,
+            "source_document_id": c.source_document_id,
+            "skills_count": skills_count,
+            "questions_count": questions_count,
+            "created_at": c.created_at.isoformat() if c.created_at else None
+        })
+    return results
 
-@router.post("", response_model=ChapterResponse, status_code=status.HTTP_201_CREATED)
-def create_chapter(chapter_in: ChapterCreate, db: Session = Depends(get_db)):
-    subject = db.query(Subject).filter(Subject.id == chapter_in.subject_id).first()
-    if not subject:
-        raise HTTPException(status_code=404, detail="Subject not found")
-
-    chapter = Chapter(
-        id=str(uuid.uuid4()),
-        subject_id=chapter_in.subject_id,
-        title=chapter_in.title,
-        order_num=chapter_in.order_num,
-        description=chapter_in.description
-    )
-    db.add(chapter)
-    db.commit()
-    db.refresh(chapter)
-    return chapter
-
-@router.get("/{chapter_id}", response_model=ChapterResponse)
-def get_chapter(chapter_id: str, db: Session = Depends(get_db)):
+@router.get("/{chapter_id}")
+def get_chapter_detail(chapter_id: str, db: Session = Depends(get_db)):
+    """Get single chapter details with ordered skills list."""
     chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
-    return chapter
+    
+    skills = db.query(Skill).filter(Skill.chapter_id == chapter_id).order_by(Skill.order).all()
+    return {
+        "id": chapter.id,
+        "title": chapter.title,
+        "subject": chapter.subject,
+        "description": chapter.description,
+        "source_type": chapter.source_type,
+        "skills": [{
+            "id": s.id,
+            "code": s.code,
+            "name": s.name,
+            "description": s.description,
+            "prerequisite_skill_ids": s.prerequisite_skill_ids or [],
+            "difficulty": s.difficulty,
+            "order": s.order
+        } for s in skills]
+    }
 
-@router.post("/topics", response_model=TopicResponse, status_code=status.HTTP_201_CREATED)
-def create_topic(topic_in: TopicCreate, db: Session = Depends(get_db)):
-    chapter = db.query(Chapter).filter(Chapter.id == topic_in.chapter_id).first()
-    if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+@router.get("/{chapter_id}/skills")
+def get_chapter_skills(chapter_id: str, db: Session = Depends(get_db)):
+    """Dynamically retrieves the ordered skills for this chapter."""
+    skills = db.query(Skill).filter(Skill.chapter_id == chapter_id).order_by(Skill.order).all()
+    return [{
+        "id": s.id,
+        "chapter_id": s.chapter_id,
+        "code": s.code,
+        "name": s.name,
+        "description": s.description,
+        "prerequisite_skill_ids": s.prerequisite_skill_ids or [],
+        "difficulty": s.difficulty,
+        "order": s.order
+    } for s in skills]
 
-    topic = Topic(
-        id=str(uuid.uuid4()),
-        chapter_id=topic_in.chapter_id,
-        code=topic_in.code,
-        title=topic_in.title,
-        description=topic_in.description,
-        difficulty=topic_in.difficulty,
-        prerequisite_topic_ids=topic_in.prerequisite_topic_ids
-    )
-    db.add(topic)
-    db.commit()
-    db.refresh(topic)
-    return topic
+@router.get("/{chapter_id}/questions")
+def get_chapter_questions(chapter_id: str, db: Session = Depends(get_db)):
+    """
+    Dynamically retrieves questions for this chapter from the database.
+    Ensures frontend NEVER hardcodes the question bank.
+    """
+    questions = db.query(Question).filter(
+        Question.chapter_id == chapter_id,
+        Question.active == True
+    ).all()
+    return [{
+        "id": q.id,
+        "chapter_id": q.chapter_id,
+        "skill_id": q.skill_id,
+        "question_text": q.question_text,
+        "correct_answer": q.correct_answer,
+        "expected_steps": q.expected_steps or [],
+        "difficulty": q.difficulty,
+        "source_type": q.source_type,
+        "source_reference": q.source_reference or {},
+        "diagnostic_tags": q.diagnostic_tags or []
+    } for q in questions]

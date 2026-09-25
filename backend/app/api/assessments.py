@@ -1,84 +1,189 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
 import uuid
+import datetime
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import Dict, Any
 
 from app.database import get_db
-from app.models.all_models import Assessment, AssessmentSubmission, Subject, Topic
-from app.schemas.all_schemas import AssessmentResponse, AssessmentCreate, SubmissionCreate, SubmissionResponse
-from app.services.mastery_service import mastery_service
+from app.models.all_models import (
+    Question,
+    Skill,
+    Attempt,
+    StudentMisconceptionInstance,
+    MisconceptionPattern,
+    AuditLog,
+)
+from app.schemas.all_schemas import AttemptSubmission, DiagnosisResult
+from app.services.deterministic_engine import DeterministicMisconceptionEngine
+from app.services.llm_reasoning import LLMReasoningService
+from app.services.mastery_service import MasteryService
 
-router = APIRouter(prefix="/assessments", tags=["Assessments"])
+router = APIRouter(prefix="/attempts", tags=["Assessment & Attempts"])
 
-@router.get("", response_model=List[AssessmentResponse])
-def list_assessments(db: Session = Depends(get_db)):
-    return db.query(Assessment).all()
+@router.post("/submit", response_model=DiagnosisResult)
+def submit_attempt(submission: AttemptSubmission, db: Session = Depends(get_db)):
+    """
+    Core Evaluation Pipeline:
+    Student Work -> Deterministic Misconception Engine -> If Unmatched -> LLM Fallback
+    -> Knowledge Twin Update -> Mistake Card Generation.
+    """
+    question = db.query(Question).filter(Question.id == submission.question_id).first()
+    if not question:
+        raise HTTPException(status_code=404, detail="Question not found")
+        
+    skill = db.query(Skill).filter(Skill.id == question.skill_id).first()
+    skill_name = skill.name if skill else "Algebra"
 
-@router.post("", response_model=AssessmentResponse, status_code=status.HTTP_201_CREATED)
-def create_assessment(assessment_in: AssessmentCreate, db: Session = Depends(get_db)):
-    subject = db.query(Subject).filter(Subject.id == assessment_in.subject_id).first()
-    if not subject:
-        raise HTTPException(status_code=404, detail="Subject not found")
+    # Fetch active pattern rules associated with this skill (or general patterns)
+    patterns = db.query(MisconceptionPattern).filter(
+        MisconceptionPattern.status == "active"
+    ).all()
+    pattern_rules = [{
+        "id": p.id,
+        "name": p.name,
+        "description": p.description,
+        "rule_type": p.rule_type,
+        "rule_config": p.rule_config or {},
+        "classification": p.classification,
+        "intervention_type": p.intervention_type,
+        "principle_text": p.principle_text,
+        "skill_id": p.skill_id,
+        "skill_name": skill_name
+    } for p in patterns]
 
-    assessment = Assessment(
-        id=str(uuid.uuid4()),
-        subject_id=assessment_in.subject_id,
-        chapter_id=assessment_in.chapter_id,
-        title=assessment_in.title,
-        description=assessment_in.description,
-        max_score=assessment_in.max_score,
-        questions=assessment_in.questions
+    # STEP 1: Execute Deterministic Misconception Engine FIRST
+    engine = DeterministicMisconceptionEngine()
+    diagnosis = engine.evaluate_attempt(
+        question_text=question.question_text,
+        correct_answer=question.correct_answer,
+        student_answer=submission.answer,
+        work_shown=submission.work_shown,
+        skill_id=question.skill_id,
+        pattern_rules=pattern_rules
     )
-    db.add(assessment)
-    db.commit()
-    db.refresh(assessment)
-    return assessment
 
-@router.get("/{assessment_id}", response_model=AssessmentResponse)
-def get_assessment(assessment_id: str, db: Session = Depends(get_db)):
-    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
-    return assessment
+    new_pattern_discovered = False
+    engine_used = diagnosis.get("engine_used", "deterministic")
 
-@router.post("/{assessment_id}/submit", response_model=SubmissionResponse)
-def submit_assessment(
-    assessment_id: str,
-    submission_in: SubmissionCreate,
-    db: Session = Depends(get_db)
-):
-    assessment = db.query(Assessment).filter(Assessment.id == assessment_id).first()
-    if not assessment:
-        raise HTTPException(status_code=404, detail="Assessment not found")
+    # STEP 2: If answer is incorrect and deterministic match was weak / unmatched -> ESCALATE TO LLM FALLBACK
+    if not diagnosis.get("is_correct") and not diagnosis.get("matched"):
+        known_names = [p["name"] for p in pattern_rules]
+        llm_result = LLMReasoningService.diagnose_with_fallback(
+            db=db,
+            question_text=question.question_text,
+            correct_answer=question.correct_answer,
+            student_answer=submission.answer,
+            work_shown=submission.work_shown,
+            skill_name=skill_name,
+            skill_id=question.skill_id,
+            known_pattern_names=known_names
+        )
+        engine_used = "llm_fallback"
+        new_pattern_discovered = llm_result.get("new_pattern_discovered", False)
+        diagnosis["matched"] = True
+        diagnosis["engine_used"] = "llm_fallback"
+        diagnosis["classification"] = llm_result.get("classification")
+        diagnosis["likely_misconception"] = llm_result.get("likely_misconception")
+        diagnosis["explanation"] = llm_result.get("explanation")
+        diagnosis["mistake_card"] = llm_result.get("mistake_card")
 
-    submission = AssessmentSubmission(
-        id=str(uuid.uuid4()),
-        assessment_id=assessment_id,
-        student_id=submission_in.student_id,
-        score=submission_in.score,
-        max_score=submission_in.max_score,
-        responses=submission_in.responses
+    # STEP 3: Record Attempt in Database
+    attempt_id = f"att_{uuid.uuid4().hex[:8]}"
+    attempt = Attempt(
+        id=attempt_id,
+        student_id=submission.student_id,
+        question_id=submission.question_id,
+        answer=submission.answer,
+        work_shown=submission.work_shown,
+        input_mode=submission.input_mode,
+        correct=diagnosis.get("is_correct", False),
+        confidence=submission.confidence if submission.confidence is not None else diagnosis.get("confidence", 0.5),
+        diagnosis=diagnosis
     )
-    db.add(submission)
+    db.add(attempt)
+
+    # STEP 4: Update Bayesian Knowledge Tracing (BKT) Mastery
+    mastery_state = MasteryService.record_attempt(
+        db=db,
+        student_id=submission.student_id,
+        skill_id=question.skill_id,
+        is_correct=diagnosis.get("is_correct", False)
+    )
+
+    # STEP 5: If incorrect and misconception detected, record or update StudentMisconceptionInstance
+    if not diagnosis.get("is_correct") and diagnosis.get("likely_misconception"):
+        pat_id = diagnosis.get("pattern_id")
+        if not pat_id:
+            # Look up or use fallback pattern id
+            matched_pat = db.query(MisconceptionPattern).filter(
+                MisconceptionPattern.name == diagnosis.get("likely_misconception")
+            ).first()
+            pat_id = matched_pat.id if matched_pat else "PAT_GENERAL"
+
+        existing_inst = db.query(StudentMisconceptionInstance).filter(
+            StudentMisconceptionInstance.student_id == submission.student_id,
+            StudentMisconceptionInstance.pattern_id == pat_id,
+            StudentMisconceptionInstance.status == "active"
+        ).first()
+
+        now = datetime.datetime.utcnow()
+        if existing_inst:
+            existing_inst.occurrences += 1
+            existing_inst.last_detected = now
+            if submission.work_shown:
+                existing_inst.evidence_examples = list(existing_inst.evidence_examples or []) + [
+                    " → ".join(submission.work_shown)
+                ]
+        else:
+            new_inst = StudentMisconceptionInstance(
+                id=f"smi_{uuid.uuid4().hex[:8]}",
+                student_id=submission.student_id,
+                pattern_id=pat_id,
+                skill_id=question.skill_id,
+                status="active",
+                occurrences=1,
+                evidence_examples=[" → ".join(submission.work_shown)] if submission.work_shown else [submission.answer],
+                first_detected=now,
+                last_detected=now
+            )
+            db.add(new_inst)
+
+    # STEP 6: Audit log
+    audit = AuditLog(
+        id=f"aud_{uuid.uuid4().hex[:8]}",
+        event_type="attempt_diagnosed",
+        student_id=submission.student_id,
+        details={
+            "attempt_id": attempt_id,
+            "engine": engine_used,
+            "correct": diagnosis.get("is_correct"),
+            "misconception": diagnosis.get("likely_misconception"),
+            "new_pattern_discovered": new_pattern_discovered
+        }
+    )
+    db.add(audit)
     db.commit()
-    db.refresh(submission)
 
-    # Automatically update Knowledge Twin if question topic tags are available
-    # Or update topics associated with the assessment chapter
-    percentage = submission_in.score / max(1.0, submission_in.max_score)
-    is_passing = percentage >= 0.70
+    # Pattern count in library
+    pattern_count = db.query(MisconceptionPattern).filter(MisconceptionPattern.status == "active").count()
 
-    if assessment.questions:
-        for q in assessment.questions:
-            topic_code = q.get("topic_code")
-            if topic_code:
-                topic = db.query(Topic).filter(Topic.code == topic_code).first()
-                if topic:
-                    mastery_service.record_practice_event(
-                        db=db,
-                        student_id=submission_in.student_id,
-                        topic_id=topic.id,
-                        is_correct=is_passing
-                    )
-
-    return submission
+    return DiagnosisResult(
+        attempt_id=attempt_id,
+        correct=diagnosis.get("is_correct", False),
+        evaluated_answer=submission.answer,
+        engine_used=engine_used,
+        rule_id=diagnosis.get("rule_type") or diagnosis.get("pattern_id"),
+        classification=diagnosis.get("classification"),
+        likely_misconception=diagnosis.get("likely_misconception"),
+        explanation=diagnosis.get("explanation"),
+        mistake_card=diagnosis.get("mistake_card"),
+        twin_updated=True,
+        new_pattern_discovered=new_pattern_discovered,
+        pattern_library_count=pattern_count,
+        mastery_delta={
+            "skill_id": question.skill_id,
+            "new_mastery": mastery_state.mastery_probability,
+            "confidence": mastery_state.confidence,
+            "evidence_count": mastery_state.evidence_count
+        }
+    )

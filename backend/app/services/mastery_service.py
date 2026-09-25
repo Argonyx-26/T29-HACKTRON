@@ -1,141 +1,173 @@
-"""
-Mastery Service
-Coordinates knowledge twin state updates, mastery recalculations,
-and persistence into database sessions.
-"""
+import datetime
+from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-import uuid
+from app.models.all_models import MasteryState, Skill, StudentMisconceptionInstance, EmergingGap
 
-from app.models.all_models import StudentTwin, TopicMastery, Topic, AssessmentSubmission
-from app.services.deterministic_engine import deterministic_engine
+class BayesianKnowledgeTracing:
+    """
+    Standard Bayesian Knowledge Tracing (BKT) engine.
+    Maintains probability of latent skill mastery across sequential evidence.
+    """
+    P_INIT = 0.30   # Initial prior
+    P_TRANSIT = 0.20 # Learning rate per attempt
+    P_GUESS = 0.15   # Probability of guessing correctly without mastery
+    P_SLIP = 0.10    # Probability of slipping (incorrect despite mastery)
+
+    @classmethod
+    def update_mastery(cls, current_p: float, is_correct: bool) -> float:
+        p = max(0.01, min(0.99, current_p))
+        if is_correct:
+            # P(L | correct) = (P(L) * (1 - P_S)) / (P(L) * (1 - P_S) + (1 - P(L)) * P_G)
+            numerator = p * (1.0 - cls.P_SLIP)
+            denominator = numerator + (1.0 - p) * cls.P_GUESS
+            p_posterior = numerator / max(1e-6, denominator)
+        else:
+            # P(L | incorrect) = (P(L) * P_S) / (P(L) * P_S + (1 - P(L)) * (1 - P_G))
+            numerator = p * cls.P_SLIP
+            denominator = numerator + (1.0 - p) * (1.0 - cls.P_GUESS)
+            p_posterior = numerator / max(1e-6, denominator)
+            
+        # Transit step: student can learn from the attempt
+        p_new = p_posterior + (1.0 - p_posterior) * cls.P_TRANSIT
+        return round(float(max(0.05, min(0.99, p_new))), 4)
+
 
 class MasteryService:
-    def get_or_create_twin(self, db: Session, student_id: str) -> StudentTwin:
-        twin = db.query(StudentTwin).filter(StudentTwin.student_id == student_id).first()
-        if not twin:
-            twin = StudentTwin(
-                id=str(uuid.uuid4()),
-                student_id=student_id,
-                overall_mastery=0.0,
-                cognitive_load=0.2,
-                learning_pace=1.0,
-                retention_decay=0.05
-            )
-            db.add(twin)
-            db.commit()
-            db.refresh(twin)
-        return twin
+    @staticmethod
+    def calculate_confidence(evidence_count: int) -> Dict[str, Any]:
+        """
+        Calculates evidence-based confidence separate from mastery percentage.
+        """
+        if evidence_count == 0:
+            return {"confidence": 0.0, "label": "Not yet assessed"}
+        conf = min(1.0, evidence_count / 4.0)
+        if evidence_count == 1:
+            label = "Low"
+        elif evidence_count in (2, 3):
+            label = "Moderate"
+        else:
+            label = "High"
+        return {"confidence": round(conf, 2), "label": label}
 
-    def get_or_create_topic_mastery(self, db: Session, twin_id: str, topic_id: str) -> TopicMastery:
-        record = db.query(TopicMastery).filter(
-            TopicMastery.twin_id == twin_id,
-            TopicMastery.topic_id == topic_id
-        ).first()
-        if not record:
-            record = TopicMastery(
-                id=str(uuid.uuid4()),
-                twin_id=twin_id,
-                topic_id=topic_id,
-                score=0.1,  # initial prior
-                confidence=0.5,
-                attempts_count=0,
-                status="unseen"
-            )
-            db.add(record)
-            db.commit()
-            db.refresh(record)
-        return record
-
-    def record_practice_event(
-        self,
+    @staticmethod
+    def record_attempt(
         db: Session,
         student_id: str,
-        topic_id: str,
-        is_correct: bool
-    ) -> TopicMastery:
+        skill_id: str,
+        is_correct: bool,
+        event_name: str = "assessment"
+    ) -> MasteryState:
         """
-        Processes a single practice / item attempt and deterministically updates
-        the TopicMastery and the StudentTwin's overall cognitive state.
+        Updates student mastery using BKT and checks for emerging gaps.
         """
-        twin = self.get_or_create_twin(db, student_id)
-        topic_mastery = self.get_or_create_topic_mastery(db, twin.id, topic_id)
+        state = db.query(MasteryState).filter(
+            MasteryState.student_id == student_id,
+            MasteryState.skill_id == skill_id
+        ).first()
 
-        # Apply BKT update
-        new_score = deterministic_engine.update_bkt(
-            prior_mastery=topic_mastery.score,
-            is_correct=is_correct
-        )
-
-        topic_mastery.score = new_score
-        topic_mastery.attempts_count += 1
-        topic_mastery.confidence = min(0.95, round(topic_mastery.confidence + 0.05, 2))
-        topic_mastery.last_practiced = datetime.now(timezone.utc)
-        topic_mastery.status = deterministic_engine.evaluate_status(new_score, topic_mastery.attempts_count)
-
-        db.commit()
-        db.refresh(topic_mastery)
-
-        # Recalculate StudentTwin overall status
-        self.recalculate_twin_aggregates(db, twin.id)
-        return topic_mastery
-
-    def recalculate_twin_aggregates(self, db: Session, twin_id: str) -> StudentTwin:
-        twin = db.query(StudentTwin).filter(StudentTwin.id == twin_id).first()
-        if not twin:
-            return None
-
-        mastery_records = db.query(TopicMastery).filter(TopicMastery.twin_id == twin_id).all()
-        scores = [r.score for r in mastery_records]
-
-        metrics = deterministic_engine.aggregate_twin_metrics(scores)
-        twin.overall_mastery = metrics["overall_mastery"]
-        twin.cognitive_load = metrics["cognitive_load"]
-        twin.learning_pace = metrics["learning_pace"]
-        twin.last_synced_at = datetime.now(timezone.utc)
-
-        db.commit()
-        db.refresh(twin)
-        return twin
-
-    def get_knowledge_graph(self, db: Session, student_id: str) -> dict:
-        """
-        Constructs a structured knowledge graph representation for the student twin.
-        """
-        twin = self.get_or_create_twin(db, student_id)
-        all_topics = db.query(Topic).all()
-        masteries = {
-            m.topic_id: m
-            for m in db.query(TopicMastery).filter(TopicMastery.twin_id == twin.id).all()
-        }
-
-        nodes = []
-        edges = []
-
-        for topic in all_topics:
-            m = masteries.get(topic.id)
-            score = m.score if m else 0.0
-            status = m.status if m else "unseen"
-
-            nodes.append({
-                "id": topic.id,
-                "label": topic.title,
-                "code": topic.code,
-                "mastery": score,
-                "status": status,
-                "difficulty": topic.difficulty,
-                "prerequisites": topic.prerequisite_topic_ids or []
+        now = datetime.datetime.utcnow()
+        if not state:
+            init_p = BayesianKnowledgeTracing.P_INIT
+            new_p = BayesianKnowledgeTracing.update_mastery(init_p, is_correct)
+            conf_info = MasteryService.calculate_confidence(1)
+            state = MasteryState(
+                id=f"{student_id}_{skill_id}",
+                student_id=student_id,
+                skill_id=skill_id,
+                mastery_probability=new_p,
+                confidence=conf_info["confidence"],
+                evidence_count=1,
+                history=[{
+                    "timestamp": now.isoformat(),
+                    "p_mastery": new_p,
+                    "event": event_name,
+                    "is_correct": is_correct
+                }],
+                last_updated=now
+            )
+            db.add(state)
+        else:
+            old_p = state.mastery_probability
+            new_p = BayesianKnowledgeTracing.update_mastery(old_p, is_correct)
+            new_evidence_count = (state.evidence_count or 0) + 1
+            conf_info = MasteryService.calculate_confidence(new_evidence_count)
+            
+            history = list(state.history or [])
+            history.append({
+                "timestamp": now.isoformat(),
+                "p_mastery": new_p,
+                "event": event_name,
+                "is_correct": is_correct
             })
+            
+            state.mastery_probability = new_p
+            state.confidence = conf_info["confidence"]
+            state.evidence_count = new_evidence_count
+            state.history = history
+            state.last_updated = now
 
-            for prereq_id in (topic.prerequisite_topic_ids or []):
-                edges.append({"source": prereq_id, "target": topic.id})
+        db.commit()
+        db.refresh(state)
 
-        return {
-            "student_id": student_id,
-            "twin_id": twin.id,
-            "overall_mastery": twin.overall_mastery,
-            "nodes": nodes,
-            "edges": edges
-        }
+        # Check for Emerging Gaps
+        MasteryService.check_and_update_emerging_gaps(db, student_id, skill_id)
+        
+        return state
 
-mastery_service = MasteryService()
+    @staticmethod
+    def check_and_update_emerging_gaps(db: Session, student_id: str, skill_id: str):
+        """
+        Proactively detects emerging gaps:
+        Prerequisite weakness + Repeated misconception = Emerging Gap warning.
+        """
+        target_skill = db.query(Skill).filter(Skill.id == skill_id).first()
+        if not target_skill or not target_skill.prerequisite_skill_ids:
+            return
+
+        # Check prerequisite skill masteries
+        prereq_weakness = False
+        weak_prereq_name = ""
+        for prereq_code in target_skill.prerequisite_skill_ids:
+            prereq_skill = db.query(Skill).filter(Skill.code == prereq_code).first()
+            if prereq_skill:
+                prereq_state = db.query(MasteryState).filter(
+                    MasteryState.student_id == student_id,
+                    MasteryState.skill_id == prereq_skill.id
+                ).first()
+                if not prereq_state or prereq_state.mastery_probability < 0.50:
+                    prereq_weakness = True
+                    weak_prereq_name = prereq_skill.name
+                    break
+
+        # Check if student has active misconceptions in target skill
+        active_misconceptions = db.query(StudentMisconceptionInstance).filter(
+            StudentMisconceptionInstance.student_id == student_id,
+            StudentMisconceptionInstance.skill_id == skill_id,
+            StudentMisconceptionInstance.status == "active"
+        ).all()
+
+        gap_record = db.query(EmergingGap).filter(
+            EmergingGap.student_id == student_id,
+            EmergingGap.skill_id == skill_id,
+            EmergingGap.status == "active"
+        ).first()
+
+        if prereq_weakness and len(active_misconceptions) >= 1:
+            if not gap_record:
+                gap = EmergingGap(
+                    id=f"gap_{student_id}_{skill_id}",
+                    student_id=student_id,
+                    skill_id=skill_id,
+                    title=f"Prerequisite Fragility in {target_skill.name}",
+                    description=f"Weak mastery in foundational skill '{weak_prereq_name}' is actively impairing progress in {target_skill.name}.",
+                    risk_level="high" if len(active_misconceptions) > 1 else "moderate",
+                    trigger_reason=f"Prerequisite {weak_prereq_name} < 50% combined with recurring misconception.",
+                    detected_at=datetime.datetime.utcnow(),
+                    status="active"
+                )
+                db.add(gap)
+                db.commit()
+        elif gap_record and not prereq_weakness:
+            # Resolved
+            gap_record.status = "mitigated"
+            db.commit()
