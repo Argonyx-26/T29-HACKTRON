@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, BookOpen, Brain, Compass, Sparkles, Target } from 'lucide-react';
+import { ArrowRight, BookOpen, Brain, Compass, Sparkles, Target, UserRound } from 'lucide-react';
 
 interface LandingPageProps {
   onNavigateToLogin: () => void;
@@ -12,22 +12,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onG
     <div className="landing-frame">
       <header className="landing-header">
         <a className="landing-brand" href="#top" aria-label="Knowledge Twin home">
-          <img src="/knowledge-twin-wordmark.png" alt="Knowledge Twin" />
+          <span className="landing-brand-mark"><Brain size={18} strokeWidth={1.8} /></span>
+          <span className="landing-brand-name">Knowledge <em>Twin</em></span>
         </a>
-        <nav className="landing-section-nav" aria-label="Explore Knowledge Twin">
-          <a href="#how-it-works">How it works</a>
-          <a href="#outcomes">Outcomes</a>
-        </nav>
         <nav className="landing-actions" aria-label="Main navigation">
-          <button className="landing-login" onClick={onNavigateToLogin}>Log In</button>
-          <button className="landing-get-started" onClick={onGetStarted}>Get Started</button>
+          <button className="landing-login" onClick={onNavigateToLogin}>Sign In</button>
+          <button className="landing-get-started" onClick={onGetStarted}>Get Started <ArrowRight size={15} /></button>
+          <button className="landing-profile" onClick={onNavigateToLogin} aria-label="Open account sign in"><UserRound size={15} /></button>
         </nav>
       </header>
 
       <main id="top" className="landing-hero">
         <div className="landing-art-wrap">
-          <video className="landing-art landing-video" autoPlay muted loop playsInline preload="metadata" poster="/hero-chalk-student.png" aria-label="Student studying at a desk under a lamp">
-            <source src="/studying-hero.mp4" type="video/mp4" />
+          <video className="landing-art landing-video" autoPlay muted loop playsInline preload="metadata" aria-label="Student writing in a notebook">
+            <source src="/landing-notebook.mp4" type="video/mp4" />
           </video>
         </div>
 
@@ -64,7 +62,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin, onG
         <div className="landing-twin-visual"><div className="twin-orbit orbit-one" /><div className="twin-orbit orbit-two" /><div className="twin-core"><Sparkles size={28} /><strong>Your Twin</strong><small>Learning with you</small></div><div className="twin-skill skill-one"><Compass size={16} />Skill mastery</div><div className="twin-skill skill-two"><Target size={16} />Next steps</div><div className="twin-skill skill-three"><Brain size={16} />Understanding</div></div>
       </section>
 
-      <footer className="landing-footer"><a href="#top" className="landing-footer-brand"><img src="/knowledge-twin-wordmark.png" alt="Knowledge Twin" /></a><span>Understand more with every answer.</span><button onClick={onNavigateToLogin}>Log In</button></footer>
+      <footer className="landing-footer"><a href="#top" className="landing-footer-brand"><span className="landing-brand-mark"><Brain size={16} /></span><span className="landing-brand-name">Knowledge <em>Twin</em></span></a><span>© 2025 Knowledge Twin Institute · Adaptive learning and cognitive diagnostics</span><button onClick={onNavigateToLogin}>Sign In</button></footer>
     </div>
   </div>
 );
