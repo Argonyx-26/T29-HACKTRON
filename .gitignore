@@ -36,3 +36,8 @@ frontend/uploads/*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Design assets & zip bundles
+*.zip
+stitch_education_landing_page/
+

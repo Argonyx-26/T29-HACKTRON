@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { learningRepository, LearnerProgressSummary } from '../../services/learningRepository';
-import { ArrowRight, Award, BookOpen, CalendarDays, CheckCircle2, ClipboardList, Clock, Flame, Search, Target, TrendingUp } from 'lucide-react';
+import { ArrowRight, Award, Bell, BookOpen, CalendarDays, CheckCircle2, ClipboardList, Clock, Flame, Search, Target, TrendingUp } from 'lucide-react';
 
 interface ProgressViewProps {
   userId: string;
@@ -47,7 +47,7 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateTo
 
   return (
     <div className="progress-dashboard">
-      <div className="progress-topbar"><label><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search topics, skills, or questions..." aria-label="Search progress" /></label><button aria-label="Progress notifications"><span /></button></div>
+      <div className="progress-topbar"><label><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search topics, skills, or questions..." aria-label="Search progress" /></label><button aria-label="Progress notifications"><Bell size={20} /><span /></button></div>
 
       <header className="progress-heading">
         <div><span className="progress-eyebrow">TRACK YOUR JOURNEY</span><h1>Your Progress</h1><p>See how far you’ve come and what’s next.</p></div>
