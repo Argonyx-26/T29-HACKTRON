@@ -60,6 +60,12 @@ class ChapterDetail(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+# --- Student Goal Schema ---
+class StudentGoalUpdate(BaseModel):
+    target_goal: Optional[str] = None
+    goal_description: Optional[str] = None
+    target_mastery: Optional[float] = 0.85
+
 # --- Student Attempt & Diagnosis Schemas ---
 class AttemptSubmission(BaseModel):
     student_id: str
@@ -67,6 +73,7 @@ class AttemptSubmission(BaseModel):
     answer: str
     work_shown: List[str] = []
     input_mode: str = "steps" # "notebook_photo", "steps", "answer_only"
+    confidence: Optional[float] = 0.5 # Student-reported confidence before submitting (0.0 to 1.0)
 
 class MistakeCard(BaseModel):
     misconception_name: str
@@ -107,15 +114,62 @@ class SkillMasteryInfo(BaseModel):
     prerequisites: List[str] = []
     prerequisite_gap: bool = False
 
+class SkillGapInfo(BaseModel):
+    skill_id: str
+    skill_code: str
+    skill_name: str
+    current_mastery: float
+    target_mastery: float
+    gap_size: float
+    confidence: float
+    confidence_label: str
+    evidence_count: int
+    is_blocking: bool = False
+    blocked_by: List[str] = []
+    goal_relevance: str = "Medium" # "High", "Medium", "Low"
+    recommended_action: str # "Intervention", "Prerequisite Review", "Practice", "Mastered"
+
+class NextBestActionInfo(BaseModel):
+    action_type: str # "complete_diagnostic", "targeted_intervention", "prerequisite_rescue", "practice_skill", "advance_next_chapter"
+    title: str
+    subtitle: str
+    reason: str
+    button_label: str
+    target_skill_id: Optional[str] = None
+    target_skill_code: Optional[str] = None
+    target_chapter_id: Optional[str] = None
+    pattern_id: Optional[str] = None
+    classification: Optional[str] = None
+
+class CalibrationInsight(BaseModel):
+    status: str # "calibrated", "overconfident", "underconfident", "insufficient_evidence"
+    sample_count: int
+    supported_knowledge_pct: float
+    overconfidence_pct: float
+    underconfidence_pct: float
+    summary: str
+
 class KnowledgeTwinView(BaseModel):
     student_id: str
     student_name: str
-    overall_score_percentage: float
-    skills: List[SkillMasteryInfo]
-    active_misconceptions: List[Dict[str, Any]]
-    resolved_misconceptions: List[Dict[str, Any]]
-    emerging_gaps: List[Dict[str, Any]]
-    recent_interventions: List[Dict[str, Any]]
+    avatar_color: Optional[str] = "#3B82F6"
+    current_chapter_id: Optional[str] = None
+    current_chapter_title: Optional[str] = None
+    current_subject: Optional[str] = None
+    overall_score_percentage: Optional[float] = None
+    overall_mastery: Optional[float] = None
+    target_goal: Optional[str] = None
+    goal_description: Optional[str] = None
+    target_mastery: float = 0.85
+    skills: List[SkillMasteryInfo] = []
+    skill_gaps: List[SkillGapInfo] = []
+    next_best_action: Optional[NextBestActionInfo] = None
+    calibration_insight: Optional[CalibrationInsight] = None
+    prerequisite_rescues: List[Dict[str, Any]] = []
+    active_misconceptions: List[Dict[str, Any]] = []
+    resolved_misconceptions: List[Dict[str, Any]] = []
+    emerging_gaps: List[Dict[str, Any]] = []
+    recent_interventions: List[Dict[str, Any]] = []
 
 # --- Intervention & Retest Schemas ---
 class RetestSubmission(BaseModel):

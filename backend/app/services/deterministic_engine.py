@@ -171,8 +171,9 @@ class DeterministicMisconceptionEngine:
                 "mistake_card": None
             }
 
-        # Clean and deduplicate steps: avoid duplicate question text at steps[0]
-        cleaned_steps = [question_text]
+        # Clean and extract equation from question text if present (e.g. "Solve: 3(x + 2) = 15" -> "3(x + 2) = 15")
+        q_cleaned = re.sub(r'^[A-Za-z\s]+:\s*', '', question_text.strip())
+        cleaned_steps = [q_cleaned]
         for w in work_shown:
             w_strip = w.strip()
             if w_strip and ExpressionParser.normalize_string(w_strip) != ExpressionParser.normalize_string(cleaned_steps[-1]):

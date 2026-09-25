@@ -2,9 +2,9 @@ import uuid
 import shutil
 import os
 from pathlib import Path
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from app.database import get_db
 from app.config import settings
@@ -14,7 +14,11 @@ from app.services.document_ingestion import DocumentIngestionService
 router = APIRouter(prefix="/documents", tags=["Bring Your Own Chapter"])
 
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_document(
+    file: UploadFile = File(...),
+    student_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
     """
     Accepts student study materials (PDF), validates, and initiates
     the structured content extraction pipeline.
@@ -37,6 +41,7 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
         filename=file.filename,
         file_path=str(file_path),
         file_size_bytes=file_size,
+        student_id=student_id,
         status="uploading",
         progress_percent=10,
         current_stage="uploading"

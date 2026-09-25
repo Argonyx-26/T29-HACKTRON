@@ -40,40 +40,6 @@ def list_groups(subject: Optional[str] = None, db: Session = Depends(get_db)):
         query = query.filter(StudyGroup.subject.ilike(f"%{subject}%"))
     groups = query.order_by(StudyGroup.created_at.desc()).all()
 
-    # Seed a default group if none exist
-    if not groups:
-        default_group = StudyGroup(
-            id="grp_alg_01",
-            name="Algebra Cohort Study Circle",
-            subject="Mathematics",
-            code="KT-ALG-742",
-            member_count=5,
-            description="Collaborative revision of linear terms, distribution, and variable isolation before midterm diagnostics.",
-            target_goal="Reach 80% Chapter Mastery across all cohort members",
-            goal_progress=68,
-            shared_materials=[
-                {"title": "Linear Equations Summary & Common Traps", "type": "PDF Guide", "date": "2 days ago"},
-                {"title": "Distributive Property Worked Examples Walkthrough", "type": "Notes", "date": "Yesterday"}
-            ],
-            collaborative_prompts=[
-                {"prompt": "Why does a negative multiplier flip all signs inside parentheses: -(2x - 5)?", "skill": "Distributive Property", "completedCount": 4},
-                {"prompt": "Determine which side to move variable terms to keep coefficients positive in 3x + 12 = 7x - 4.", "skill": "Variable Isolation", "completedCount": 3}
-            ],
-            recent_activity=[
-                {"user": "Maya K.", "action": "shared notes on Distributive Rules", "time": "1 hour ago"},
-                {"user": "Liam P.", "action": "completed collaborative practice question", "time": "3 hours ago"},
-                {"user": "Dr. Vance", "action": "assigned shared practice challenge", "time": "1 day ago"}
-            ],
-            created_at=datetime.datetime.utcnow()
-        )
-        try:
-            db.add(default_group)
-            db.commit()
-            db.refresh(default_group)
-            groups = [default_group]
-        except Exception:
-            db.rollback()
-
     return [{
         "id": g.id,
         "name": g.name,

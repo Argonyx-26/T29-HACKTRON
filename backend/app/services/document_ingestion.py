@@ -73,6 +73,7 @@ class DocumentIngestionService:
                 description=f"Extracted from student uploaded document: {doc.filename}",
                 source_type="uploaded_pdf",
                 source_document_id=doc.id,
+                creator_id=getattr(doc, "student_id", None),
                 status="active"
             )
             db.add(chapter)

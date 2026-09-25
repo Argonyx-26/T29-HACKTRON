@@ -13,6 +13,9 @@ class Student(Base):
     role = Column(String, default="student")
     email = Column(String, nullable=True)
     avatar_color = Column(String, default="#3B82F6")
+    target_goal = Column(String, nullable=True)
+    goal_description = Column(Text, nullable=True)
+    target_mastery = Column(Float, default=0.85)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
     # Relationships
@@ -39,6 +42,7 @@ class Chapter(Base):
     description = Column(Text, nullable=True)
     source_type = Column(String, default="curated") # "curated" or "uploaded_pdf"
     source_document_id = Column(String, nullable=True)
+    creator_id = Column(String, nullable=True, index=True)
     status = Column(String, default="active")
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     
@@ -223,6 +227,7 @@ class InterventionHistory(Base):
     
     student = relationship("Student", back_populates="intervention_histories")
     intervention = relationship("Intervention")
+    skill = relationship("Skill")
 
 class UploadedDocument(Base):
     __tablename__ = "uploaded_documents"
@@ -237,6 +242,7 @@ class UploadedDocument(Base):
     current_stage = Column(String, default="uploading")
     error_message = Column(Text, nullable=True)
     chapter_id = Column(String, nullable=True)
+    student_id = Column(String, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class ContentExtraction(Base):

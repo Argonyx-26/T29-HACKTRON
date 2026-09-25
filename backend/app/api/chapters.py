@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from app.database import get_db
 from app.models.all_models import Chapter, Skill, Question
@@ -8,9 +8,16 @@ from app.models.all_models import Chapter, Skill, Question
 router = APIRouter(prefix="/chapters", tags=["Chapters"])
 
 @router.get("", response_model=List[Dict[str, Any]])
-def list_chapters(db: Session = Depends(get_db)):
-    """List all available chapters (both curated demo and student uploaded)."""
-    chapters = db.query(Chapter).filter(Chapter.status == "active").all()
+def list_chapters(db: Session = Depends(get_db), student_id: Optional[str] = None):
+    """List all available chapters (curated for all students; uploaded only for the owner)."""
+    query = db.query(Chapter).filter(Chapter.status == "active")
+    if student_id:
+        query = query.filter(
+            (Chapter.source_type == "curated") |
+            (Chapter.id == "chap_current_elec") |
+            (Chapter.creator_id == student_id)
+        )
+    chapters = query.all()
     results = []
     for c in chapters:
         skills_count = db.query(Skill).filter(Skill.chapter_id == c.id).count()

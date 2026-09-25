@@ -97,7 +97,7 @@ def submit_attempt(submission: AttemptSubmission, db: Session = Depends(get_db))
         work_shown=submission.work_shown,
         input_mode=submission.input_mode,
         correct=diagnosis.get("is_correct", False),
-        confidence=diagnosis.get("confidence", 0.5),
+        confidence=submission.confidence if submission.confidence is not None else diagnosis.get("confidence", 0.5),
         diagnosis=diagnosis
     )
     db.add(attempt)

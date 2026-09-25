@@ -752,10 +752,54 @@ def seed_demo_cohort(db: Session):
                     skill_id=sk_id,
                     mastery_probability=max(0.35, min(0.95, base_score + (0.05 if idx <= 1 else -0.05))),
                     confidence=0.75,
-                    evidence_count=3,
                     history=[],
                     last_updated=now
                 ))
+
+    # Seed real Attempts for Student A (3 correct, 2 incorrect = 60.0%)
+    attempts_a = [
+        ("att_seed_a1", "student_a", "q_eq_01", "7", True, 0.85, ["x + 4 = 11", "x = 7"], {}),
+        ("att_seed_a2", "student_a", "q_simp_01", "16", True, 0.75, ["5 + 3 = 8", "8 - 2 = 6", "6 + 10 = 16"], {}),
+        ("att_seed_a3", "student_a", "q_like_01", "3", True, 0.80, ["4x + 3x = 7x", "7x = 21", "x = 3"], {}),
+        ("att_seed_a4", "student_a", "q_dist_01", "4.33", False, 0.70, ["3(x + 2) = 15", "3x + 2 = 15", "x = 4.33"], {"likely_misconception": "Partial Distribution", "classification": "procedural"}),
+        ("att_seed_a5", "student_a", "q_dist_02", "6.25", False, 0.75, ["4(x + 3) = 28", "4x + 3 = 28", "x = 6.25"], {"likely_misconception": "Partial Distribution", "classification": "procedural"}),
+    ]
+    for att_id, st_id, q_id, ans, is_corr, conf, steps, diag in attempts_a:
+        if not db.query(Attempt).filter(Attempt.id == att_id).first():
+            db.add(Attempt(
+                id=att_id,
+                student_id=st_id,
+                question_id=q_id,
+                answer=ans,
+                work_shown=steps,
+                correct=is_corr,
+                confidence=conf,
+                diagnosis=diag,
+                created_at=now - datetime.timedelta(hours=2)
+            ))
+
+    # Seed real Attempts for Student B (3 correct, 2 incorrect = 60.0%)
+    attempts_b = [
+        ("att_seed_b1", "student_b", "q_eq_01", "7", True, 0.80, ["x + 4 = 11", "x = 7"], {}),
+        ("att_seed_b2", "student_b", "q_simp_01", "16", True, 0.75, ["5 + 3 = 8", "16"], {}),
+        ("att_seed_b3", "student_b", "q_dist_01", "3", True, 0.85, ["3(x + 2) = 15", "3x + 6 = 15", "x = 3"], {}),
+        ("att_seed_b4", "student_b", "q_like_01", "2.625", False, 0.65, ["4x + 3x = 21", "8x = 21", "x = 2.625"], {"likely_misconception": "Combining Unlike Terms", "classification": "conceptual"}),
+        ("att_seed_b5", "student_b", "q_like_02", "1.38", False, 0.70, ["8x - 5x = 18", "13x = 18", "x = 1.38"], {"likely_misconception": "Combining Unlike Terms", "classification": "conceptual"}),
+    ]
+    for att_id, st_id, q_id, ans, is_corr, conf, steps, diag in attempts_b:
+        if not db.query(Attempt).filter(Attempt.id == att_id).first():
+            db.add(Attempt(
+                id=att_id,
+                student_id=st_id,
+                question_id=q_id,
+                answer=ans,
+                work_shown=steps,
+                correct=is_corr,
+                confidence=conf,
+                diagnosis=diag,
+                created_at=now - datetime.timedelta(hours=3)
+            ))
+
     db.flush()
     print("Demo cohort seeded successfully (for local SQLite tests only).")
 
