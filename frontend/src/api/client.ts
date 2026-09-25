@@ -139,6 +139,12 @@ export const apiClient = {
     return res.json();
   },
 
+  async getDocuments(): Promise<Array<{ id: string; title: string; file_path: string; file_size: number; mime_type: string; status: string; uploaded_at: string }>> {
+    const res = await fetch(`${API_BASE}/documents`);
+    if (!res.ok) throw new Error('Failed to fetch materials');
+    return res.json();
+  },
+
   // Bring Your Own Material (Document Ingestion)
   async uploadDocument(file: File): Promise<any> {
     const formData = new FormData();
@@ -157,9 +163,9 @@ export const apiClient = {
     return res.json();
   },
 
-  async getDocumentReview(id: string): Promise<any> {
-    const res = await fetch(`${API_BASE}/documents/${id}/review`);
-    if (!res.ok) throw new Error('Failed to fetch document review');
+  async parseDocument(id: string): Promise<{ document_id: string; title: string; status: string; extracted_length: number; extracted_outline: Array<{ number: number; title: string; topics: string[] }> }> {
+    const res = await fetch(`${API_BASE}/documents/${id}/parse`, { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to process document');
     return res.json();
   },
 
@@ -167,6 +173,30 @@ export const apiClient = {
   async getTeacherOverview(): Promise<TeacherOverview> {
     const res = await fetch(`${API_BASE}/teacher/overview`);
     if (!res.ok) throw new Error('Failed to fetch teacher overview');
+    return res.json();
+  },
+
+  async getTeacherCohort(): Promise<Array<{
+    student_id: string;
+    full_name: string;
+    overall_mastery: number;
+    risk_status: string;
+    active_interventions_count: number;
+  }>> {
+    const res = await fetch(`${API_BASE}/teacher/cohort`);
+    if (!res.ok) throw new Error('Failed to fetch teacher cohort');
+    return res.json();
+  },
+
+  async getTeacherTopicPerformance(): Promise<Array<{
+    topic_id: string;
+    topic_code: string;
+    topic_title: string;
+    avg_mastery: number;
+    students_struggling_count: number;
+  }>> {
+    const res = await fetch(`${API_BASE}/teacher/struggling-topics`);
+    if (!res.ok) throw new Error('Failed to fetch topic performance');
     return res.json();
   },
 

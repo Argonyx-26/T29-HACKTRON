@@ -102,7 +102,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
         {/* Login form */}
         <div className="login-form-column lg:col-span-6 flex justify-center lg:justify-end w-full">
           <div
-            className="login-card w-full max-w-[520px] relative"
+            className="login-card login-surface-blend w-full max-w-[520px] relative"
           >
             {/* Card Header Titles */}
             <div className="text-center mb-7 relative z-10">
@@ -122,6 +122,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
                 type="button"
                 aria-pressed={role === 'student'}
                 onClick={() => handleRoleChange('student')}
+                style={role === 'student' ? { outline: '3px solid #17232c', outlineOffset: '-3px' } : undefined}
                 className={`login-role-option flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold transition-colors cursor-pointer ${role === 'student' ? 'is-active' : ''}`}
               >
                 <GraduationCap size={18} />
@@ -132,6 +133,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
                 type="button"
                 aria-pressed={role === 'teacher'}
                 onClick={() => handleRoleChange('teacher')}
+                style={role === 'teacher' ? { outline: '3px solid #17232c', outlineOffset: '-3px' } : undefined}
                 className={`login-role-option flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold transition-colors cursor-pointer ${role === 'teacher' ? 'is-active' : ''}`}
               >
                 <UserCheck size={18} />

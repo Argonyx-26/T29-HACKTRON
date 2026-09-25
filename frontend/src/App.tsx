@@ -174,7 +174,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="app-shell" style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-primary)' }}>
+    <div className={`app-shell ${role === 'student' && studentTab === 'home' ? 'student-home-shell' : ''}`} style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-primary)' }}>
       {/* Persistent Left Navigation Sidebar */}
       <Sidebar
         user={currentUser}
@@ -186,8 +186,8 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Column */}
-      <div className="app-workspace" style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
-        <main className="app-main" style={{ maxWidth: '1440px', width: '100%', margin: '28px auto', padding: '0 32px', flex: 1, boxSizing: 'border-box' }}>
+      <div className={`app-workspace ${role === 'student' && studentTab === 'home' ? 'student-home-workspace' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
+        <main className={`app-main ${role === 'student' && studentTab === 'home' ? 'student-home-main' : ''}`} style={{ maxWidth: '1440px', width: '100%', margin: '28px auto', padding: '0 32px', flex: 1, boxSizing: 'border-box' }}>
           {/* STUDENT FLOW */}
           {role === 'student' && (
             <>
