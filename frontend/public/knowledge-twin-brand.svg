@@ -1,17 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 110" fill="none">
   <g stroke="#26343d" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Open book -->
-    <path d="M8 59c12-4 24-2 36 6v32C30 88 19 86 8 90V59Z" stroke-width="3"/>
-    <path d="M80 59c-12-4-24-2-36 6v32c14-9 25-11 36-7V59Z" stroke-width="3"/>
-    <path d="M44 65v32M13 65c9-2 17 0 25 5M75 65c-9-2-17 0-25 5" stroke-width="1.6"/>
-    <!-- Learning profile and connected ideas -->
-    <path d="M35 60c0-10-5-17-8-24-5-13 0-26 11-32 12-7 28-3 34 9 3 6 3 12 1 17l8 7-8 5c1 6-2 10-8 13-4 2-6 5-6 10" stroke-width="2.7"/>
-    <path d="M27 37c8-10 17-12 26-7 6 3 10 8 12 15M39 8c7 5 12 11 14 18M48 31c-4 7-5 15-4 26" stroke-width="1.7"/>
-    <circle cx="31" cy="34" r="3" fill="#26343d" stroke="none"/>
-    <circle cx="43" cy="12" r="3.7" fill="#26343d" stroke="none"/>
-    <circle cx="62" cy="21" r="3.2" fill="#26343d" stroke="none"/>
-    <circle cx="49" cy="39" r="2.6" fill="#26343d" stroke="none"/>
-    <path d="m84 3 2 5.4 5.5 2-5.5 2-2 5.5-2-5.5-5.5-2 5.5-2L84 3Z" fill="#26343d" stroke="none"/>
+    <!-- Simple open book -->
+    <path d="M8 56c13-4 25-1 36 7 11-8 23-11 36-7v35c-13-4-25-1-36 7-11-8-23-11-36-7V56Z" stroke-width="3"/>
+    <path d="M44 63v42M14 64c9-1 17 1 24 5M74 64c-9-1-17 1-24 5" stroke-width="1.6"/>
+    <!-- A single, clear pencil accent -->
+    <path d="m52 53 26-27 8 8-27 26-9 2 2-9Z" stroke-width="2.5"/>
+    <path d="m74 30 8 8M53 52l6 6" stroke-width="1.5"/>
+    <path d="m87 12 1.5 4.5L93 18l-4.5 1.5L87 24l-1.5-4.5L81 18l4.5-1.5L87 12Z" stroke-width="1.7"/>
   </g>
   <text x="106" y="51" fill="#202a31" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.4" textLength="300" lengthAdjust="spacingAndGlyphs">KNOWLEDGE</text>
   <text x="416" y="51" fill="#68747a" font-family="Arial, Helvetica, sans-serif" font-size="48" font-weight="500" letter-spacing="-1.4" textLength="96" lengthAdjust="spacingAndGlyphs">TWIN</text>
