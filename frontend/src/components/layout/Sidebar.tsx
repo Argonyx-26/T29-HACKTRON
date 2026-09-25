@@ -13,10 +13,10 @@ import {
   X,
   Globe,
   UserCheck,
-  FolderOpen
+  FolderOpen,
+  ChevronRight
 } from 'lucide-react';
 import { User } from '../../types';
-import { KnowledgeTwinLogo } from '../auth/LoginView';
 import { AccountModal } from '../account/AccountModal';
 
 interface SidebarProps {
@@ -60,264 +60,103 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <aside className="app-sidebar" style={{
-        width: '240px',
-        flexShrink: 0,
-        background: '#000000',
-        borderRight: '1px solid rgba(255, 255, 255, 0.08)',
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '100vh',
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        boxSizing: 'border-box',
-        zIndex: 20
-      }}>
-        {/* Brand Header with crisp Knowledge Twin Vector Logo */}
-        <div
-          onClick={onGoToLanding || (() => onNavigate(user.role === 'teacher' ? 'overview' : 'home'))}
-          style={{
-            padding: '24px 20px 20px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
-          }}
-          title="Return to Knowledge Twin Landing Page"
-        >
-          <KnowledgeTwinLogo />
+      <aside className="w-64 min-h-screen bg-[#060608] border-r border-white/5 flex flex-col justify-between py-6 px-4 flex-shrink-0 z-30 sticky top-0 h-screen overflow-y-auto">
+        <div className="flex flex-col space-y-7">
+          {/* Brand Logo Lockup from Stitch */}
+          <div
+            onClick={onGoToLanding || (() => onNavigate(user.role === 'teacher' ? 'overview' : 'home'))}
+            className="px-2 pt-1 flex items-center gap-3 cursor-pointer select-none"
+            title="Return to Knowledge Twin Landing Page"
+          >
+            <img
+              src="/knowledge-twin-logo.png"
+              alt="Knowledge Twin"
+              className="h-8 w-auto object-contain"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+            <span className="font-extrabold text-base tracking-tight text-white flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#6800cb] shadow-[0_0_8px_#8b2cf5]" />
+              Knowledge <span className="text-[#a855f7]">Twin</span>
+            </span>
+          </div>
+
+          {/* Navigation Links */}
+          <nav aria-label="Main Navigation" className="space-y-1.5">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className={`w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-medium text-xs transition-all text-left ${
+                    isActive
+                      ? 'text-white bg-gradient-to-r from-[#6800cb]/90 to-[#4c0587]/80 shadow-[0_0_20px_rgba(104,0,203,0.35)] border border-purple-500/30'
+                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <Icon size={16} className={isActive ? 'text-white' : 'text-zinc-400'} />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Primary Navigation Items */}
-        <nav className="app-sidebar-nav" style={{ padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, overflowY: 'auto' }}>
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`sidebar-nav-button${isActive ? ' is-active purple-glow-btn' : ''}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  width: '100%',
-                  padding: '11px 16px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: isActive ? '#6800cb' : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#9e9da8',
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: '0.9rem',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.2s ease',
-                  letterSpacing: '0.01em'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#FFFFFF';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#9e9da8';
-                    e.currentTarget.style.background = 'transparent';
-                  }
-                }}
-              >
-                <Icon size={19} color={isActive ? '#FFFFFF' : '#727082'} />
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Bottom Section: Settings, Help, Account */}
-        <div className="app-sidebar-footer" style={{ padding: '14px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        {/* Bottom Section */}
+        <div className="pt-4 border-t border-white/5 space-y-1.5">
           {onGoToLanding && (
             <button
               onClick={onGoToLanding}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                width: '100%',
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'transparent',
-                color: '#71707d',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'color 0.15s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
+              className="w-full flex items-center gap-3.5 px-4 py-2 rounded-xl font-medium text-xs text-zinc-400 hover:text-white hover:bg-white/[0.04] transition-all text-left"
             >
-              <Globe size={16} color="#71707d" />
+              <Globe size={15} className="text-zinc-500" />
               <span>Landing Page</span>
             </button>
           )}
 
           <button
             onClick={() => setShowSettingsModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '9px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#71707d',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
+            className="w-full flex items-center gap-3.5 px-4 py-2 rounded-xl font-medium text-xs text-zinc-400 hover:text-white hover:bg-white/[0.04] transition-all text-left"
           >
-            <Settings size={16} color="#71707d" />
+            <Settings size={15} className="text-zinc-500" />
             <span>Settings</span>
           </button>
 
           <button
             onClick={() => setShowHelpModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '9px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#71707d',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
+            className="w-full flex items-center gap-3.5 px-4 py-2 rounded-xl font-medium text-xs text-zinc-400 hover:text-white hover:bg-white/[0.04] transition-all text-left"
           >
-            <HelpCircle size={16} color="#71707d" />
+            <HelpCircle size={15} className="text-zinc-500" />
             <span>Help</span>
           </button>
 
-          {/* Account Profile Item */}
-          <button
+          {/* User Profile Pill */}
+          <div
             onClick={() => setShowAccountModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '9px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#71707d',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
+            className="mt-3 flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] cursor-pointer transition-all border border-white/5 bg-[#0a0a0e]"
           >
-            <UserCheck size={16} color="#71707d" />
-            <span>Account</span>
-          </button>
-
-          {/* Account Profile Card */}
-          <div style={{
-            marginTop: '8px',
-            padding: '12px',
-            background: '#0d0d0e',
-            borderRadius: '12px',
-            border: '1px solid rgba(255, 255, 255, 0.06)'
-          }}>
-            <div
-              onClick={() => setShowAccountModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', cursor: 'pointer' }}
-              title="Manage Account"
-            >
-              <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '8px',
-                background: user.role === 'teacher' ? 'rgba(109, 17, 173, 0.4)' : 'rgba(104, 0, 203, 0.35)',
-                color: '#d7baff',
-                border: '1px solid rgba(215, 186, 255, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                flexShrink: 0
-              }}>
-                {user.display_name ? user.display_name.charAt(0).toUpperCase() : 'U'}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#6800cb] to-[#9333ea] flex items-center justify-center font-bold text-xs text-white shadow-[0_0_10px_rgba(104,0,203,0.5)]">
+                {user.role === 'teacher' ? 'T' : 'S'}
               </div>
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{
-                  fontSize: '0.88rem',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis'
-                }}>
-                  {user.display_name}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#9496a8', textTransform: 'capitalize' }}>
-                  {user.role}
-                </div>
+              <div className="text-left">
+                <span className="text-xs font-semibold text-zinc-200 block leading-tight">
+                  {user.display_name || (user.role === 'teacher' ? 'Teacher' : 'Student')}
+                </span>
+                <span className="text-[10px] text-zinc-500 capitalize">{user.role}</span>
               </div>
             </div>
-
-            <button
-              onClick={onSwitchAccount}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '7px 10px',
-                background: '#18181c',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '8px',
-                color: '#cdc2d7',
-                fontSize: '0.78rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#FFFFFF';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = '#cdc2d7';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
-              }}
-              title="Switch user account"
-            >
-              <LogOut size={12} /> Switch account
-            </button>
+            <ChevronRight size={14} className="text-zinc-500" />
           </div>
+
+          <button
+            onClick={onSwitchAccount}
+            className="w-full mt-2 flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-zinc-500 hover:text-zinc-300 hover:bg-white/[0.03] transition-colors"
+          >
+            <LogOut size={12} />
+            <span>Switch Role / Logout</span>
+          </button>
         </div>
       </aside>
 
@@ -326,141 +165,75 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <AccountModal
           user={user}
           onClose={() => setShowAccountModal(false)}
+          onSwitchAccount={onSwitchAccount}
           onUpdateUser={(updated) => {
             if (onUpdateUser) onUpdateUser(updated);
+            setShowAccountModal(false);
           }}
-          onSwitchAccount={onSwitchAccount}
         />
       )}
 
-      {/* Settings Modal (Dark Stitch Theme) */}
+      {/* Settings Modal */}
       {showSettingsModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '28px', position: 'relative' }}>
-            <button
-              onClick={() => setShowSettingsModal(false)}
-              style={{ position: 'absolute', top: '18px', right: '18px', background: 'none', border: 'none', cursor: 'pointer', color: '#9496a8' }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginBottom: '18px' }}>
-              Platform Settings
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.88rem' }}>
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Display Name
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#FFFFFF' }}>
-                  {user.display_name}
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Assigned Role
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#FFFFFF', textTransform: 'capitalize' }}>
-                  {user.role}
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Learner User ID (UUID)
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#9496a8', fontSize: '0.78rem', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                  {user.user_id}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.85rem' }}
-              >
-                Close
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0e0e14] border border-white/10 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold">Preferences &amp; System</h3>
+              <button onClick={() => setShowSettingsModal(false)} className="text-zinc-400 hover:text-white">
+                <X size={18} />
               </button>
             </div>
+            <div className="space-y-4 text-xs text-zinc-300">
+              <div className="p-3 bg-[#15151f] rounded-xl border border-white/5 flex items-center justify-between">
+                <span>Color Theme</span>
+                <span className="text-purple-400 font-semibold">Stitch Purple Dark</span>
+              </div>
+              <div className="p-3 bg-[#15151f] rounded-xl border border-white/5 flex items-center justify-between">
+                <span>Cognitive Diagnostics Engine</span>
+                <span className="text-emerald-400 font-semibold">Active &middot; v2.4</span>
+              </div>
+              <div className="p-3 bg-[#15151f] rounded-xl border border-white/5 flex items-center justify-between">
+                <span>Auto-adaptive Remediations</span>
+                <span className="text-purple-400 font-semibold">Enabled</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className="mt-6 w-full py-2 bg-[#6800cb] text-white rounded-xl text-xs font-semibold"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
 
-      {/* Help Modal (Dark Stitch Theme) */}
+      {/* Help Modal */}
       {showHelpModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div className="card-panel" style={{ width: '100%', maxWidth: '520px', padding: '28px', position: 'relative' }}>
-            <button
-              onClick={() => setShowHelpModal(false)}
-              style={{ position: 'absolute', top: '18px', right: '18px', background: 'none', border: 'none', cursor: 'pointer', color: '#9496a8' }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginBottom: '8px' }}>
-              Knowledge Twin Help & Guidance
-            </h3>
-
-            <p style={{ fontSize: '0.88rem', color: '#9496a8', marginBottom: '20px', lineHeight: 1.5 }}>
-              Knowledge Twin builds an adaptive model of what you know and diagnoses why learning breaks down.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem' }}>
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>1. Learn & Explore:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Browse any subject, view curriculum skills, or upload your own notes/documents.
-                </p>
-              </div>
-
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>2. Diagnostic Assessments:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Each question diagnoses specific mistake patterns and prerequisite gaps rather than just scoring right/wrong.
-                </p>
-              </div>
-
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>3. Living Twin & Targeted Retests:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Inspect your mastery graph and resolve identified gaps through targeted micro-interventions.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button
-                onClick={() => setShowHelpModal(false)}
-                className="btn btn-primary"
-                style={{ fontSize: '0.85rem' }}
-              >
-                Got it
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#0e0e14] border border-white/10 rounded-2xl max-w-md w-full p-6 text-white shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold">Knowledge Twin Help</h3>
+              <button onClick={() => setShowHelpModal(false)} className="text-zinc-400 hover:text-white">
+                <X size={18} />
               </button>
             </div>
+            <div className="space-y-3 text-xs text-zinc-400 leading-relaxed">
+              <p>
+                <strong className="text-white">What is a Knowledge Twin?</strong> A mathematical profile of how you understand concepts and where your specific misconceptions lie.
+              </p>
+              <p>
+                <strong className="text-white">How do I improve?</strong> Take short diagnostics in the Assess view or follow targeted 3-minute micro-interventions.
+              </p>
+              <p>
+                <strong className="text-white">For Teachers:</strong> Use the Insights tab to see why students with identical scores need completely different teaching interventions.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowHelpModal(false)}
+              className="mt-6 w-full py-2 bg-[#6800cb] text-white rounded-xl text-xs font-semibold"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

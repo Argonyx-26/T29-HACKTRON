@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowRight, Brain, Sparkles, LogIn, Activity, Compass, Cpu, Layers } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, BookOpen, Sparkles, LogIn, Compass, Target, CheckCircle2 } from 'lucide-react';
 
 interface LandingPageProps {
   onNavigateToLogin: () => void;
@@ -12,532 +12,310 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onGetStarted,
   onViewCurriculum,
 }) => {
-  const [activeSlopePoint, setActiveSlopePoint] = useState<'current' | 'remediation' | 'mastery'>('remediation');
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#04060a',
-      color: '#e2e8f0',
-      fontFamily: '"Plus Jakarta Sans", system-ui, -apple-system, sans-serif',
-      display: 'flex',
-      flexDirection: 'column',
-      position: 'relative',
-      overflowX: 'hidden'
-    }}>
-      {/* Background Slope Lighting Effects */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        width: '1000px',
-        height: '480px',
-        background: 'radial-gradient(ellipse 65% 50% at 50% 0%, rgba(6, 182, 212, 0.18) 0%, rgba(2, 132, 199, 0.08) 50%, transparent 80%)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
+    <div className="bg-[#050505] text-white min-h-screen flex flex-col selection:bg-purple-800 selection:text-white font-['Plus_Jakarta_Sans',sans-serif]">
+      {/* Micro-animations CSS inline for high fidelity */}
+      <style>{`
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-9px); }
+        }
+        @keyframes warmLampGlow {
+          0%, 100% { opacity: 0.45; transform: scale(0.98); filter: blur(50px); }
+          50% { opacity: 0.75; transform: scale(1.08); filter: blur(65px); }
+        }
+        @keyframes purpleAmbientGlow {
+          0%, 100% { opacity: 0.35; transform: scale(1); filter: blur(60px); }
+          50% { opacity: 0.58; transform: scale(1.08); filter: blur(72px); }
+        }
+        @keyframes lampBreathingPulse {
+          0%, 100% { opacity: 0.55; transform: scale(0.95); }
+          50% { opacity: 0.95; transform: scale(1.08); }
+        }
+        @keyframes writingMotion {
+          0% { transform: translate(0px, 0px); opacity: 0.7; }
+          25% { transform: translate(7px, 3px); opacity: 1; }
+          50% { transform: translate(3px, 6px); opacity: 0.85; }
+          75% { transform: translate(11px, 2px); opacity: 1; }
+          100% { transform: translate(0px, 0px); opacity: 0.7; }
+        }
+        @keyframes pencilGlowFlicker {
+          0%, 100% {
+            filter: drop-shadow(0 0 4px rgba(254, 240, 138, 0.8)) drop-shadow(0 0 10px rgba(234, 179, 8, 0.6));
+            opacity: 0.8;
+          }
+          30% {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 16px rgba(234, 179, 8, 0.9));
+            opacity: 1;
+          }
+          70% {
+            filter: drop-shadow(0 0 5px rgba(254, 240, 138, 0.85)) drop-shadow(0 0 12px rgba(234, 179, 8, 0.7));
+            opacity: 0.85;
+          }
+        }
+        .hero-float-container {
+          animation: heroFloat 6.5s ease-in-out infinite;
+          will-change: transform;
+        }
+        .hero-glow-warm {
+          animation: warmLampGlow 5.5s ease-in-out infinite;
+          background: radial-gradient(circle at 35% 42%, rgba(234, 179, 8, 0.48) 0%, rgba(245, 158, 11, 0.22) 40%, transparent 72%);
+        }
+        .hero-glow-purple {
+          animation: purpleAmbientGlow 7s ease-in-out infinite 0.6s;
+          background: radial-gradient(circle at 65% 58%, rgba(104, 0, 203, 0.45) 0%, rgba(120, 14, 221, 0.2) 45%, transparent 75%);
+        }
+        .seamless-hero-img-wrap {
+          mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.85) 60%, rgba(0, 0, 0, 0.25) 80%, transparent 98%);
+          -webkit-mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, rgba(0, 0, 0, 1) 40%, rgba(0, 0, 0, 0.85) 60%, rgba(0, 0, 0, 0.25) 80%, transparent 98%);
+        }
+        .btn-violet {
+          background-color: #6800CB;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 18px rgba(104, 0, 203, 0.35);
+        }
+        .btn-violet:hover {
+          background-color: #780edd;
+          box-shadow: 0 6px 24px rgba(104, 0, 203, 0.55);
+          transform: translateY(-1px);
+        }
+        .btn-outline {
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          transition: all 0.2s ease;
+        }
+        .btn-outline:hover {
+          background-color: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-1px);
+        }
+      `}</style>
 
-      {/* Subtle Topographical Grid Lines */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-        maskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 80%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 80%)',
-        pointerEvents: 'none',
-        zIndex: 0
-      }} />
-
-      {/* Top Navbar */}
-      <header style={{
-        position: 'relative',
-        zIndex: 10,
-        maxWidth: '1280px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '22px 28px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        boxSizing: 'border-box',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.06)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
-          <div style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)'
-          }}>
-            <Cpu size={20} />
-          </div>
-          <span style={{ color: '#fff' }}>Knowledge <span style={{ color: '#38bdf8' }}>Twin</span></span>
-          <span style={{
-            fontSize: '0.68rem',
-            padding: '2px 8px',
-            borderRadius: '9999px',
-            background: 'rgba(6, 182, 212, 0.12)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
-            color: '#38bdf8',
-            fontWeight: 700,
-            textTransform: 'uppercase',
-            letterSpacing: '0.06em'
-          }}>
-            Slope AI
-          </span>
-        </div>
-
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <button
-            onClick={onNavigateToLogin}
-            style={{
-              padding: '9px 18px',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              background: 'rgba(255, 255, 255, 0.03)',
-              color: '#e2e8f0',
-              fontSize: '0.88rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s'
-            }}
-          >
-            <LogIn size={15} /> Log In
-          </button>
-          <button
-            onClick={onGetStarted}
-            style={{
-              padding: '9px 22px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
-              color: '#fff',
-              fontSize: '0.88rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 4px 18px rgba(6, 182, 212, 0.35)'
-            }}
-          >
-            Get Started
-          </button>
-        </nav>
-      </header>
-
-      {/* Hero Section */}
-      <main style={{
-        position: 'relative',
-        zIndex: 10,
-        maxWidth: '1200px',
-        width: '100%',
-        margin: '0 auto',
-        padding: '60px 24px 80px',
-        boxSizing: 'border-box',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        flex: 1
-      }}>
-        {/* Badge */}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '8px',
-          padding: '6px 16px',
-          borderRadius: '9999px',
-          background: 'rgba(6, 182, 212, 0.1)',
-          border: '1px solid rgba(6, 182, 212, 0.3)',
-          color: '#38bdf8',
-          fontSize: '0.8rem',
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          marginBottom: '26px'
-        }}>
-          <Activity size={14} className="animate-pulse" />
-          <span>Continuous Gradient Optimization for Human Learning</span>
-        </div>
-
-        {/* Headline */}
-        <h1 style={{
-          fontSize: 'clamp(2.4rem, 5.5vw, 4.2rem)',
-          fontWeight: 800,
-          lineHeight: 1.12,
-          letterSpacing: '-0.035em',
-          textAlign: 'center',
-          color: '#ffffff',
-          maxWidth: '920px',
-          marginBottom: '20px'
-        }}>
-          Mastery is a Gradient.<br />
-          <span style={{
-            background: 'linear-gradient(135deg, #38bdf8 0%, #06b6d4 40%, #10b981 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>
-            Navigate the Cognitive Slope.
-          </span>
-        </h1>
-
-        <p style={{
-          fontSize: '1.15rem',
-          lineHeight: 1.6,
-          color: '#94a3b8',
-          maxWidth: '680px',
-          textAlign: 'center',
-          marginBottom: '36px'
-        }}>
-          Knowledge Twin models your learning as a continuous mathematical landscape. It detects prerequisite drop-offs, traces misconceptions, and plots the fastest slope to true conceptual convergence.
-        </p>
-
-        {/* CTA Buttons */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '14px',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
-          marginBottom: '60px'
-        }}>
-          <button
-            onClick={onGetStarted}
-            style={{
-              padding: '14px 30px',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0284c7, #06b6d4)',
-              color: '#fff',
-              fontSize: '1rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '9px',
-              boxShadow: '0 8px 25px rgba(6, 182, 212, 0.4)'
-            }}
-          >
-            Ascend Your Learning Slope <ArrowRight size={18} />
-          </button>
-
-          {onViewCurriculum && (
-            <button
-              onClick={onViewCurriculum}
-              style={{
-                padding: '14px 26px',
-                borderRadius: '10px',
-                border: '1px solid rgba(255, 255, 255, 0.14)',
-                background: 'rgba(255, 255, 255, 0.04)',
-                color: '#fff',
-                fontSize: '1rem',
-                fontWeight: 600,
-                cursor: 'pointer'
+      {/* BEGIN: NavigationBar */}
+      <header className="w-full bg-[#050505] border-b border-neutral-900/60 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 h-20 flex items-center justify-between">
+          {/* Brand Logo Lockup */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={onGetStarted}>
+            <img
+              alt="Knowledge Twin Logo"
+              className="h-10 md:h-12 w-auto object-contain"
+              src="/knowledge-twin-logo.png"
+              onError={(e) => {
+                // Fallback text if logo fails
+                const target = e.currentTarget;
+                target.style.display = 'none';
               }}
+            />
+            <span className="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#6800cb] shadow-[0_0_10px_#8b2cf5]" />
+              Knowledge <span className="text-[#a855f7]">Twin</span>
+            </span>
+          </div>
+
+          {/* Primary Navigation Links (Desktop) */}
+          <nav className="hidden md:flex items-center space-x-10 text-sm font-medium text-neutral-400">
+            <button
+              onClick={onViewCurriculum || onGetStarted}
+              className="hover:text-white transition-colors duration-150"
             >
-              Explore Topology
+              Curriculum
             </button>
-          )}
+            <a href="#makers" className="hover:text-white transition-colors duration-150">
+              Makers
+            </a>
+            <a href="#outcomes" className="hover:text-white transition-colors duration-150">
+              Outcomes
+            </a>
+            <a href="#pricing" className="hover:text-white transition-colors duration-150">
+              Pricing
+            </a>
+          </nav>
+
+          {/* Right Header Actions (Auth & Get Started) */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <button
+              onClick={onNavigateToLogin}
+              className="text-sm font-medium text-neutral-300 hover:text-white transition-colors duration-150"
+            >
+              Log In
+            </button>
+            <button
+              onClick={onGetStarted}
+              className="inline-flex items-center justify-center bg-white text-black text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-neutral-200 transition-colors duration-150 shadow-sm"
+            >
+              Get Started
+            </button>
+          </div>
         </div>
+      </header>
+      {/* END: NavigationBar */}
 
-        {/* 3D AI Gradient Slope Visualizer Card */}
-        <div style={{
-          width: '100%',
-          maxWidth: '960px',
-          borderRadius: '20px',
-          background: 'linear-gradient(180deg, rgba(14, 20, 36, 0.9) 0%, rgba(8, 12, 22, 0.95) 100%)',
-          border: '1px solid rgba(6, 182, 212, 0.25)',
-          boxShadow: '0 20px 60px -15px rgba(0, 0, 0, 0.8), 0 0 40px -10px rgba(6, 182, 212, 0.2)',
-          padding: '28px',
-          boxSizing: 'border-box',
-          marginBottom: '60px',
-          position: 'relative'
-        }}>
-          {/* Visual Header */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingBottom: '18px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.07)',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#06b6d4', boxShadow: '0 0 10px #06b6d4' }}></span>
-              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>Cognitive Loss Landscape &amp; Gradient Trajectory</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setActiveSlopePoint('current')}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  border: activeSlopePoint === 'current' ? '1px solid #f43f5e' : '1px solid rgba(255,255,255,0.08)',
-                  background: activeSlopePoint === 'current' ? 'rgba(244, 63, 94, 0.15)' : 'transparent',
-                  color: activeSlopePoint === 'current' ? '#fda4af' : '#94a3b8',
-                  cursor: 'pointer'
-                }}
-              >
-                1. Latent Gap (High Loss)
-              </button>
-              <button
-                onClick={() => setActiveSlopePoint('remediation')}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  border: activeSlopePoint === 'remediation' ? '1px solid #06b6d4' : '1px solid rgba(255,255,255,0.08)',
-                  background: activeSlopePoint === 'remediation' ? 'rgba(6, 182, 212, 0.15)' : 'transparent',
-                  color: activeSlopePoint === 'remediation' ? '#38bdf8' : '#94a3b8',
-                  cursor: 'pointer'
-                }}
-              >
-                2. Micro-Intervention Slope
-              </button>
-              <button
-                onClick={() => setActiveSlopePoint('mastery')}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: '6px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  border: activeSlopePoint === 'mastery' ? '1px solid #10b981' : '1px solid rgba(255,255,255,0.08)',
-                  background: activeSlopePoint === 'mastery' ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                  color: activeSlopePoint === 'mastery' ? '#6ee7b7' : '#94a3b8',
-                  cursor: 'pointer'
-                }}
-              >
-                3. Global Optimum (Mastery)
-              </button>
-            </div>
-          </div>
-
-          {/* Interactive SVG Slope Diagram */}
-          <div style={{ padding: '24px 0', position: 'relative' }}>
-            <svg viewBox="0 0 880 260" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-              <defs>
-                <linearGradient id="slopeLineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#f43f5e" />
-                  <stop offset="35%" stopColor="#06b6d4" />
-                  <stop offset="70%" stopColor="#38bdf8" />
-                  <stop offset="100%" stopColor="#10b981" />
-                </linearGradient>
-
-                <linearGradient id="slopeAreaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
-                </linearGradient>
-
-                <linearGradient id="contourGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="rgba(244, 63, 94, 0.15)" />
-                  <stop offset="50%" stopColor="rgba(6, 182, 212, 0.25)" />
-                  <stop offset="100%" stopColor="rgba(16, 185, 129, 0.15)" />
-                </linearGradient>
-              </defs>
-
-              {/* Wireframe Slope Contour Lines */}
-              <path d="M 40 70 Q 240 180 440 110 T 840 190" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" strokeDasharray="4 4" />
-              <path d="M 40 100 Q 240 210 440 140 T 840 210" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" strokeDasharray="4 4" />
-              <path d="M 40 130 Q 240 230 440 170 T 840 230" fill="none" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" strokeDasharray="4 4" />
-
-              {/* Topographical Contour Band */}
-              <path d="M 40 60 Q 240 190 440 120 T 840 200 L 840 240 L 40 240 Z" fill="url(#contourGrad1)" />
-
-              {/* Primary Cognitive Gradient Descent Slope */}
-              <path
-                d="M 60 40 C 200 45, 260 210, 460 170 S 700 80, 820 85"
-                fill="none"
-                stroke="url(#slopeLineGrad)"
-                strokeWidth="4"
-                style={{ filter: 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.6))' }}
-              />
-
-              {/* Gradient Descent Step Arrows */}
-              <line x1="160" y1="52" x2="240" y2="130" stroke="#f43f5e" strokeWidth="2" strokeDasharray="3 3" />
-              <polygon points="240,130 233,122 239,121" fill="#f43f5e" />
-
-              <line x1="320" y1="184" x2="430" y2="175" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3 3" />
-              <polygon points="430,175 422,170 423,178" fill="#38bdf8" />
-
-              {/* Point 1: Misconception / High Loss Peak */}
-              <g style={{ cursor: 'pointer' }} onClick={() => setActiveSlopePoint('current')}>
-                <circle cx="90" cy="42" r="10" fill="#f43f5e" opacity="0.3" className="animate-ping" />
-                <circle cx="90" cy="42" r="6" fill="#f43f5e" stroke="#ffffff" strokeWidth="2" />
-                <text x="90" y="24" fill="#fda4af" fontSize="12" fontWeight="700" textAnchor="middle">
-                  High Error Ridge (Mistake Pattern)
-                </text>
-              </g>
-
-              {/* Point 2: Active Slope Remediation */}
-              <g style={{ cursor: 'pointer' }} onClick={() => setActiveSlopePoint('remediation')}>
-                <circle cx="380" cy="180" r="14" fill="#06b6d4" opacity="0.25" />
-                <circle cx="380" cy="180" r="7" fill="#06b6d4" stroke="#ffffff" strokeWidth="2.5" />
-                <text x="380" y="210" fill="#38bdf8" fontSize="12" fontWeight="700" textAnchor="middle">
-                  &nabla; &theta; Micro-Intervention Vector
-                </text>
-              </g>
-
-              {/* Point 3: Global Optimum / Converged Mastery */}
-              <g style={{ cursor: 'pointer' }} onClick={() => setActiveSlopePoint('mastery')}>
-                <circle cx="800" cy="85" r="16" fill="#10b981" opacity="0.25" />
-                <circle cx="800" cy="85" r="7" fill="#10b981" stroke="#ffffff" strokeWidth="2.5" />
-                <text x="800" y="65" fill="#6ee7b7" fontSize="12" fontWeight="700" textAnchor="middle">
-                  Converged Model (100% Mastery)
-                </text>
-              </g>
-            </svg>
-          </div>
-
-          {/* Telemetry Footer Row */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '16px',
-            background: 'rgba(0, 0, 0, 0.3)',
-            borderRadius: '12px',
-            padding: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.05)'
-          }}>
-            <div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Active Slope Gradient</span>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#38bdf8', marginTop: '2px' }}>
-                -0.428 &nabla;L / step
+      {/* BEGIN: HeroSection */}
+      <main className="flex-1 flex flex-col justify-center py-10 lg:py-16">
+        <section className="max-w-7xl w-full mx-auto px-6 md:px-12 lg:px-16">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+            
+            {/* Left Column: Visual Chalk Artwork with blended ambient lighting */}
+            <div className="lg:col-span-6 flex justify-center lg:justify-start">
+              <div className="relative w-full max-w-lg hero-float-container">
+                {/* Ambient dynamic backdrops */}
+                <div className="absolute -inset-10 rounded-full hero-glow-warm pointer-events-none" />
+                <div className="absolute -inset-14 rounded-full hero-glow-purple pointer-events-none" />
+                
+                {/* Illustration Card Frame */}
+                <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#070709] shadow-2xl p-2">
+                  <div className="seamless-hero-img-wrap relative flex items-center justify-center overflow-hidden rounded-xl bg-black">
+                    <img
+                      src="/hero-chalk-student.png"
+                      alt="Student studying attentively under warm desk lamp"
+                      className="w-full h-auto max-h-[480px] object-contain select-none"
+                    />
+                    
+                    {/* Synchronized light overlays */}
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(ellipse 55% 50% at 38% 46%, rgba(254, 240, 138, 0.22) 0%, rgba(234, 179, 8, 0.12) 40%, transparent 80%)',
+                        mixBlendMode: 'screen'
+                      }}
+                    />
+                    <div
+                      className="absolute bottom-4 left-4 right-4 p-3 rounded-xl bg-[#090810]/85 border border-white/10 backdrop-blur-md flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-xs font-semibold text-zinc-200">
+                          Active Cognitive Diagnostics
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-mono text-purple-300">
+                        100% Individualized
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Cognitive Convergence</span>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981', marginTop: '2px' }}>
-                94.2% Optimal
+            {/* Right Column: Hero Content & Call to Actions */}
+            <div className="lg:col-span-6 flex flex-col items-start justify-center">
+              {/* Eyebrow badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-semibold mb-6">
+                <Sparkles size={14} className="text-[#EAB308]" />
+                <span>Next-Generation Adaptive Learning</span>
               </div>
-            </div>
 
-            <div>
-              <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Prerequisite Ridge Status</span>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#fff', marginTop: '2px' }}>
-                Balanced · Low Friction
+              {/* Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-[58px] leading-[1.08] font-bold tracking-tight text-white mb-6">
+                Education<br />
+                Built Around<br />
+                <span className="text-[#EAB308]">Your Hands.</span>
+              </h1>
+
+              {/* Body Description */}
+              <p className="text-base sm:text-lg lg:text-[19px] text-[#A3A3A3] leading-relaxed max-w-xl font-normal mb-8 lg:mb-10">
+                A non-linear space where mentorship matches momentum. We've cast off the old syllabus to build support systems that actually hold you up.
+              </p>
+
+              {/* Action Buttons Group */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-5 w-full sm:w-auto">
+                {/* Primary CTA */}
+                <button
+                  onClick={onGetStarted}
+                  className="btn-violet text-white text-xs sm:text-sm font-bold tracking-wider px-7 py-3.5 rounded-lg text-center uppercase inline-flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+                >
+                  <span>JOIN THE COHORT</span>
+                  <ArrowRight size={16} />
+                </button>
+
+                {/* Secondary Outline CTA */}
+                <button
+                  onClick={onViewCurriculum || onGetStarted}
+                  className="btn-outline text-white text-xs sm:text-sm font-semibold px-6 py-3.5 rounded-lg text-center inline-flex items-center justify-center cursor-pointer"
+                >
+                  View Curriculum
+                </button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* 3 Pillar Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '24px',
-          width: '100%',
-          maxWidth: '960px',
-          textAlign: 'left'
-        }}>
-          <div style={{
-            background: 'rgba(14, 20, 36, 0.7)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '16px',
-            padding: '26px'
-          }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: 'rgba(2, 132, 199, 0.2)',
-              color: '#38bdf8',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <Compass size={22} />
+              {/* Value metric pills */}
+              <div className="mt-12 pt-8 border-t border-white/10 grid grid-cols-3 gap-6 w-full max-w-lg text-left">
+                <div>
+                  <div className="text-2xl font-extrabold text-white">48+</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">Active Cohorts</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-purple-400">92%</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">Mastery Retention</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-extrabold text-[#EAB308]">1:1</div>
+                  <div className="text-xs text-zinc-400 mt-0.5">AI Twin Modeling</div>
+                </div>
+              </div>
+
             </div>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase' }}>01 // Topographical Mapping</span>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '6px 0 10px' }}>
-              Cognitive Manifolds
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>
-              Instead of flat grades, skills are modeled as interconnected mathematical surfaces where prerequisite dependencies dictate friction.
+
+          </div>
+        </section>
+
+        {/* Section: How It Works / Curriculum Highlights */}
+        <section id="curriculum" className="max-w-7xl w-full mx-auto px-6 md:px-12 lg:px-16 mt-24 pt-16 border-t border-white/5">
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <span className="text-[11px] font-bold tracking-widest text-purple-400 uppercase">
+              How Knowledge Twin Works
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-white mt-2">
+              Beyond flat scores. Real understanding.
+            </h2>
+            <p className="text-sm sm:text-base text-zinc-400 mt-3">
+              Two students can get the same test score for entirely different reasons. Knowledge Twin pinpoints the exact cognitive misconception.
             </p>
           </div>
 
-          <div style={{
-            background: 'rgba(14, 20, 36, 0.7)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '16px',
-            padding: '26px'
-          }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: 'rgba(6, 182, 212, 0.2)',
-              color: '#06b6d4',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <Brain size={22} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 rounded-2xl bg-[#0c0c10] border border-white/5 hover:border-purple-500/30 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-5">
+                <BookOpen size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">01 / Concept Discovery</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Explore interactive subjects and chapters at your own pace without rigid, linear constraints.
+              </p>
             </div>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#06b6d4', textTransform: 'uppercase' }}>02 // Root Cause Tracing</span>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '6px 0 10px' }}>
-              Latent Ridge Detection
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>
-              When you struggle with an advanced concept, the engine scans uphill to find the exact prerequisite misconception causing the error.
-            </p>
-          </div>
 
-          <div style={{
-            background: 'rgba(14, 20, 36, 0.7)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '16px',
-            padding: '26px'
-          }}>
-            <div style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '10px',
-              background: 'rgba(16, 185, 129, 0.2)',
-              color: '#34d399',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '16px'
-            }}>
-              <Layers size={22} />
+            <div className="p-6 rounded-2xl bg-[#0c0c10] border border-white/5 hover:border-purple-500/30 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-5">
+                <Compass size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">02 / Deep Diagnostics</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Our diagnostic engine doesn't just grade right or wrong—it uncovers the underlying conceptual patterns.
+              </p>
             </div>
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#34d399', textTransform: 'uppercase' }}>03 // Adaptive Interventions</span>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '6px 0 10px' }}>
-              Fastest Descent to Mastery
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: '#94a3b8', lineHeight: 1.6 }}>
-              Receive targeted 3-minute micro-interventions that systematically eliminate the error pattern with minimum cognitive fatigue.
-            </p>
+
+            <div className="p-6 rounded-2xl bg-[#0c0c10] border border-white/5 hover:border-purple-500/30 transition-all">
+              <div className="w-12 h-12 rounded-xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-5">
+                <Target size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">03 / Precision Remediation</h3>
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                Get targeted 3-minute targeted micro-interventions that resolve root prerequisites effortlessly.
+              </p>
+            </div>
           </div>
-        </div>
+        </section>
       </main>
+      {/* END: HeroSection */}
 
       {/* Footer */}
-      <footer style={{
-        position: 'relative',
-        zIndex: 10,
-        borderTop: '1px solid rgba(255, 255, 255, 0.06)',
-        padding: '24px 20px',
-        textAlign: 'center',
-        fontSize: '0.85rem',
-        color: '#64748b'
-      }}>
-        <span>Knowledge Twin · AI Cognitive Loss Landscape &amp; Slope Architecture</span>
+      <footer className="w-full border-t border-white/5 py-8 text-center text-xs text-zinc-500 bg-[#050505]">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#6800cb]" />
+            <span className="font-semibold text-zinc-300">Knowledge Twin</span>
+            <span>&copy; {new Date().getFullYear()}</span>
+          </div>
+          <p className="text-zinc-500">Education Built Around Your Hands.</p>
+        </div>
       </footer>
     </div>
   );
