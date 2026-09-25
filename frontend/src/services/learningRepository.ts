@@ -1,173 +1,201 @@
+import { apiClient } from '../api/client';
 import {
-  KnowledgeConcept,
-  TwinMessage,
-  DiagnosticAssessment,
-  InterventionPlan,
-  StudyGroup,
-  UploadedMaterial,
-  UserProfile,
+  User,
+  Subject,
+  Chapter,
+  Skill,
+  Question,
+  KnowledgeTwinView,
+  DiagnosisResult,
+  RetestResult,
+  TeacherOverview
 } from '../types';
 
-export const mockUser: UserProfile = {
-  id: 'usr-101',
-  name: 'Alex Rivera',
-  email: 'alex.rivera@edu.org',
-  role: 'student',
-  gradeLevel: '10th Grade STEM',
-  streakDays: 14,
-  totalPoints: 2450,
-};
+export interface LearnerProgressSummary {
+  user_id: string;
+  total_attempts: number;
+  correct_attempts: number;
+  score_percentage: number | null;
+  assessed_skills_count: number;
+  recent_activity: LearnerActivityItem[];
+}
 
-export const mockConcepts: KnowledgeConcept[] = [
-  {
-    id: 'c-neural-nets',
-    title: 'Neural Network Architectures',
-    domain: 'Artificial Intelligence',
-    description: 'Foundations of multi-layer perceptrons, forward propagation, and activation functions.',
-    masteryLevel: 78,
-    status: 'proficient',
-    prerequisites: ['Linear Algebra Basics', 'Calculus Chain Rule'],
-    cognitiveLoad: 'high',
-    lastPracticed: '2 hours ago',
-  },
-  {
-    id: 'c-gradient-descent',
-    title: 'Gradient Descent Optimization',
-    domain: 'Machine Learning',
-    description: 'Loss function landscapes, learning rates, stochastic gradient descent and momentum.',
-    masteryLevel: 62,
-    status: 'developing',
-    prerequisites: ['Partial Derivatives'],
-    cognitiveLoad: 'medium',
-    lastPracticed: 'Yesterday',
-  },
-  {
-    id: 'c-attention-mechanisms',
-    title: 'Attention & Transformers',
-    domain: 'Deep Learning',
-    description: 'Self-attention, multi-head projections, and positional encoding mechanisms.',
-    masteryLevel: 35,
-    status: 'emerging',
-    prerequisites: ['Neural Network Architectures', 'Matrix Multiplication'],
-    cognitiveLoad: 'high',
-    lastPracticed: '3 days ago',
-  },
-  {
-    id: 'c-data-normalization',
-    title: 'Feature Scaling & Normalization',
-    domain: 'Data Science',
-    description: 'StandardScaler, MinMax scaling, and combating vanishing gradients.',
-    masteryLevel: 94,
-    status: 'mastered',
-    prerequisites: ['Basic Statistics'],
-    cognitiveLoad: 'low',
-    lastPracticed: '5 days ago',
-  },
-];
+export interface LearnerActivityItem {
+  id: string;
+  user_id: string;
+  type: 'assessment' | 'retest';
+  title: string;
+  score_or_result?: string;
+  timestamp: string;
+}
 
-export const mockInterventions: InterventionPlan[] = [
-  {
-    id: 'inv-1',
-    studentId: 'usr-101',
-    conceptId: 'c-attention-mechanisms',
-    conceptTitle: 'Attention & Transformers',
-    misconception: 'Confusing query-key dot product with element-wise value scaling.',
-    recommendedAction: 'Complete 3D visual projection simulation and 3 micro-practice questions.',
-    urgency: 'high',
-    completed: false,
-  },
-  {
-    id: 'inv-2',
-    studentId: 'usr-101',
-    conceptId: 'c-gradient-descent',
-    conceptTitle: 'Gradient Descent Optimization',
-    misconception: 'Overlooking saddle points and local minima traps during learning rate selection.',
-    recommendedAction: 'Run adaptive learning rate sandbox (Adam vs SGD).',
-    urgency: 'medium',
-    completed: false,
-  },
-];
+const STORAGE_KEY_CURRENT_USER_ID = 'kt_current_user_id';
+const STORAGE_KEY_USERS = 'kt_users_list';
 
-export const mockStudyGroups: StudyGroup[] = [
-  {
-    id: 'grp-1',
-    name: 'Deep Learning Cohort Alpha',
-    topic: 'Transformer Encoders & Decoders',
-    membersCount: 8,
-    activeNow: 4,
-    nextSessionTime: 'Today, 4:00 PM',
-  },
-  {
-    id: 'grp-2',
-    name: 'Calculus for ML Working Group',
-    topic: 'Backpropagation Vectorization',
-    membersCount: 12,
-    activeNow: 2,
-    nextSessionTime: 'Tomorrow, 10:00 AM',
-  },
-];
 
-export const mockUploadedMaterials: UploadedMaterial[] = [
-  {
-    id: 'mat-1',
-    fileName: 'Lecture_04_Transformer_Attention.pdf',
-    fileSize: '4.2 MB',
-    uploadedAt: 'Sep 24, 2026',
-    status: 'indexed',
-    extractedConceptsCount: 14,
-  },
-  {
-    id: 'mat-2',
-    fileName: 'Syllabus_Machine_Learning_2026.docx',
-    fileSize: '1.1 MB',
-    uploadedAt: 'Sep 22, 2026',
-    status: 'indexed',
-    extractedConceptsCount: 38,
-  },
-];
-
-export const mockDiagnostic: DiagnosticAssessment = {
-  id: 'diag-1',
-  title: 'Diagnostic: Neural Representations & Optimization',
-  subject: 'Deep Learning Foundations',
-  estimatedMinutes: 10,
-  questions: [
-    {
-      id: 'q-1',
-      conceptId: 'c-neural-nets',
-      prompt: 'What happens to backpropagation gradients when using sigmoid activation in deep networks (10+ layers)?',
-      options: [
-        'Gradients grow exponentially causing overflow',
-        'Gradients diminish exponentially (vanishing gradient problem)',
-        'Gradients oscillate between positive and negative infinity',
-        'Activation levels remain constant regardless of weights',
-      ],
-      correctIndex: 1,
-      explanation: 'Sigmoid derivatives peak at 0.25; chaining multiple layers repeatedly scales gradients down exponentially.',
-      difficulty: 'medium',
-    },
-    {
-      id: 'q-2',
-      conceptId: 'c-attention-mechanisms',
-      prompt: 'Why are keys (K) and queries (Q) dot-product scaled by sqrt(d_k) in Scaled Dot-Product Attention?',
-      options: [
-        'To speed up GPU matrix operations',
-        'To ensure output matrices are symmetric',
-        'To prevent softmax gradients from becoming extremely small for large dimensions',
-        'To invert negative attention weights',
-      ],
-      correctIndex: 2,
-      explanation: 'For large d_k, dot products grow large in magnitude, pushing softmax into regions with extremely small gradients.',
-      difficulty: 'hard',
-    },
-  ],
-};
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 11);
+}
 
 export const learningRepository = {
-  getUser: async () => mockUser,
-  getConcepts: async () => mockConcepts,
-  getInterventions: async () => mockInterventions,
-  getStudyGroups: async () => mockStudyGroups,
-  getMaterials: async () => mockUploadedMaterials,
-  getDiagnostic: async () => mockDiagnostic,
+  // ==========================================
+  // 1. LOCAL LEARNER IDENTITY
+  // ==========================================
+
+  getCurrentUser(): User | null {
+    try {
+      const currentId = localStorage.getItem(STORAGE_KEY_CURRENT_USER_ID);
+      if (!currentId) return null;
+      const users = this.listUsers();
+      return users.find(u => u.user_id === currentId) || null;
+    } catch {
+      return null;
+    }
+  },
+
+  getLastUser(): User | null {
+    const current = this.getCurrentUser();
+    if (current) return current;
+    const users = this.listUsers();
+    return users.length > 0 ? users[0] : null;
+  },
+
+  listUsers(): User[] {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_USERS);
+      if (!raw) return [];
+      return JSON.parse(raw) as User[];
+    } catch {
+      return [];
+    }
+  },
+
+  saveUser(displayName: string, role: 'student' | 'teacher'): User {
+    const trimmed = displayName.trim() || (role === 'teacher' ? 'Teacher' : 'Student');
+    const newUser: User = {
+      user_id: generateUUID(),
+      display_name: trimmed,
+      role,
+      created_at: new Date().toISOString()
+    };
+
+    const users = this.listUsers();
+    const updatedUsers = [newUser, ...users.filter(u => u.user_id !== newUser.user_id)];
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
+    localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, newUser.user_id);
+
+    // Synchronize identity with PostgreSQL authoritative backend
+    apiClient.registerStudent({
+      id: newUser.user_id,
+      name: newUser.display_name,
+      role: newUser.role
+    }).catch(err => {
+      console.warn('Backend student sync notice:', err);
+    });
+
+    return newUser;
+  },
+
+  switchUser(userId: string): User | null {
+    const users = this.listUsers();
+    const target = users.find(u => u.user_id === userId);
+    if (target) {
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, target.user_id);
+      return target;
+    }
+    return null;
+  },
+
+  clearCurrentUser(): void {
+    localStorage.removeItem(STORAGE_KEY_CURRENT_USER_ID);
+  },
+
+  // ==========================================
+  // 2. CURRICULUM (DELEGATES TO API CLIENT)
+  // ==========================================
+
+  async getSubjects(): Promise<Subject[]> {
+    return apiClient.getSubjects();
+  },
+
+  async getChapters(subjectId?: string): Promise<Chapter[]> {
+    if (subjectId) {
+      return apiClient.getSubjectChapters(subjectId);
+    }
+    return apiClient.getChapters();
+  },
+
+  async getSkills(chapterId: string): Promise<Skill[]> {
+    return apiClient.getChapterSkills(chapterId);
+  },
+
+  async getQuestions(chapterId: string): Promise<Question[]> {
+    return apiClient.getChapterQuestions(chapterId);
+  },
+
+  // ==========================================
+  // 3. LEARNER STATE & AUTHORITATIVE BACKEND PERSISTENCE
+  // ==========================================
+
+  async getTwin(userId: string, chapterId?: string): Promise<KnowledgeTwinView> {
+    return apiClient.getStudentTwin(userId, chapterId);
+  },
+
+  async submitAttempt(payload: {
+    student_id: string;
+    question_id: string;
+    answer: string;
+    work_shown: string[];
+    input_mode: string;
+  }): Promise<DiagnosisResult> {
+    // Authoritative submission: written directly to PostgreSQL via FastAPI
+    return apiClient.submitAttempt(payload);
+  },
+
+  async submitRetest(payload: {
+    student_id: string;
+    intervention_id: string;
+    question_id: string;
+    answer: string;
+    work_shown: string[];
+  }): Promise<RetestResult> {
+    // Authoritative retest: written directly to PostgreSQL via FastAPI
+    return apiClient.submitRetest(payload);
+  },
+
+  async getActivity(userId: string): Promise<LearnerActivityItem[]> {
+    try {
+      return await apiClient.getStudentActivity(userId);
+    } catch (e) {
+      console.warn('Failed to fetch activity from backend:', e);
+      return [];
+    }
+  },
+
+  async getProgress(userId: string): Promise<LearnerProgressSummary> {
+    try {
+      return await apiClient.getStudentProgress(userId);
+    } catch (e) {
+      console.warn('Failed to fetch progress from backend:', e);
+      return {
+        user_id: userId,
+        total_attempts: 0,
+        correct_attempts: 0,
+        score_percentage: null,
+        assessed_skills_count: 0,
+        recent_activity: []
+      };
+    }
+  },
+
+  // ==========================================
+  // 4. TEACHER ANALYTICS
+  // ==========================================
+
+  async getTeacherOverview(): Promise<TeacherOverview> {
+    return apiClient.getTeacherOverview();
+  }
 };

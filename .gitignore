@@ -1,0 +1,28 @@
+# Environment & Secret files
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+backend/knowledge_twin.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Uploads & local storage
+backend/uploads/*
+!backend/uploads/.gitkeep
