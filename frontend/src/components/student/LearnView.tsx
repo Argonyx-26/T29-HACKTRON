@@ -1,110 +1,126 @@
-import React, { useState } from 'react';
-import { mockConcepts } from '../../services/learningRepository';
-import { KnowledgeConcept } from '../../types';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Bell, Bookmark, BookOpen, Check, CheckCircle2, GitBranch, Infinity as InfinityIcon, Lightbulb, Search, Star, Target, TrendingUp, UploadCloud } from 'lucide-react';
+import { Chapter, Subject } from '../../types';
+import { apiClient } from '../../api/client';
 
-export const LearnView: React.FC = () => {
-  const [concepts] = useState<KnowledgeConcept[]>(mockConcepts);
-  const [activeConcept, setActiveConcept] = useState<KnowledgeConcept>(mockConcepts[0]);
-  const [twinHint, setTwinHint] = useState<string | null>(null);
+type LearnTab = 'topics' | 'path' | 'recommended' | 'bookmarks';
+type TopicStatus = 'Not Started' | 'In Progress' | 'Completed';
+const STATUS_KEY = 'knowledge-twin-topic-status';
+const BOOKMARK_KEY = 'knowledge-twin-topic-bookmarks';
 
-  const requestHint = () => {
-    setTwinHint(
-      `Your Twin advises: Focus on connecting ${activeConcept.title} back to your mastered foundation in ${activeConcept.prerequisites[0] || 'Prerequisites'}. Avoid memorizing formulas—visualize how the vectors transform!`
-    );
-  };
+const readStorage = <T,>(key: string, fallback: T): T => {
+  try { const saved = localStorage.getItem(key); return saved ? JSON.parse(saved) as T : fallback; }
+  catch { return fallback; }
+};
+
+const topicIcons = [BookOpen, TrendingUp, InfinityIcon, Target, GitBranch, Lightbulb];
+
+export const LearnView: React.FC<{ onSelectChapter: (chapter: Chapter) => void; onNavigateToUpload: () => void; initialSearchQuery?: string }> = ({ onSelectChapter, onNavigateToUpload, initialSearchQuery = '' }) => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [topics, setTopics] = useState<Chapter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<LearnTab>('topics');
+  const [statusFilter, setStatusFilter] = useState<'All' | TopicStatus>('All');
+  const [search, setSearch] = useState(initialSearchQuery);
+  const [statuses, setStatuses] = useState<Record<string, TopicStatus>>(() => readStorage(STATUS_KEY, {}));
+  const [bookmarks, setBookmarks] = useState<string[]>(() => readStorage(BOOKMARK_KEY, []));
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        const loadedSubjects = await apiClient.getSubjects();
+        if (!alive) return;
+        setSubjects(loadedSubjects);
+        const results = await Promise.all(loadedSubjects.map(async subject => {
+          try { return await apiClient.getSubjectChapters(subject.id); }
+          catch { return []; }
+        }));
+        if (alive) setTopics(results.flat());
+      } catch (error) {
+        console.error('Failed to load learning topics', error);
+      } finally { if (alive) setLoading(false); }
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const updateStatus = (id: string, status: TopicStatus) => setStatuses(current => {
+    const next = { ...current, [id]: status };
+    localStorage.setItem(STATUS_KEY, JSON.stringify(next));
+    return next;
+  });
+
+  const toggleBookmark = (id: string) => setBookmarks(current => {
+    const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id];
+    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(next));
+    return next;
+  });
+
+  const visibleTopics = useMemo(() => {
+    let result = topics.filter(topic => {
+      const query = search.trim().toLowerCase();
+      const matchesSearch = !query || `${topic.title} ${topic.subject} ${topic.description || ''}`.toLowerCase().includes(query);
+      const status = statuses[topic.id] || 'Not Started';
+      return matchesSearch && (statusFilter === 'All' || status === statusFilter);
+    });
+    if (activeTab === 'bookmarks') result = result.filter(topic => bookmarks.includes(topic.id));
+    if (activeTab === 'recommended') result = result.filter(topic => (statuses[topic.id] || 'Not Started') !== 'Completed');
+    if (activeTab === 'path') result = [...result].sort((a, b) => a.subject.localeCompare(b.subject) || a.title.localeCompare(b.title));
+    return result;
+  }, [topics, search, statuses, statusFilter, activeTab, bookmarks]);
+
+  const tabs: { id: LearnTab; label: string; icon: typeof Target }[] = [
+    { id: 'topics', label: 'Topics', icon: Target },
+    { id: 'path', label: 'Learning Path', icon: GitBranch },
+    { id: 'recommended', label: 'Recommended', icon: Star },
+    { id: 'bookmarks', label: 'Bookmarks', icon: Bookmark },
+  ];
+  const filters: ('All' | TopicStatus)[] = ['All', 'In Progress', 'Not Started', 'Completed'];
 
   return (
-    <div className="view-container">
-      <div className="view-header">
-        <div>
-          <h2>Adaptive Learning Workspace</h2>
-          <p className="subtitle">Real-time scaffolded concept acquisition driven by your cognitive twin</p>
-        </div>
+    <div className="learn-dashboard">
+      <div className="learn-topbar">
+        <label className="learn-global-search"><Search size={19} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search for topics, skills, or questions..." aria-label="Search learning topics" /></label>
+        <button className="learn-notification" aria-label="Notifications"><Bell size={21} /><span /></button>
       </div>
 
-      <div className="learn-layout">
-        <div className="concept-sidebar">
-          <h3>Curriculum Nodes</h3>
-          <div className="concept-nav-list">
-            {concepts.map((c) => (
-              <button
-                key={c.id}
-                className={`concept-nav-btn ${activeConcept.id === c.id ? 'active' : ''}`}
-                onClick={() => {
-                  setActiveConcept(c);
-                  setTwinHint(null);
-                }}
-              >
-                <div className="c-nav-header">
-                  <strong>{c.title}</strong>
-                  <span className="badge badge-subtle">{c.masteryLevel}%</span>
-                </div>
-                <span className="text-muted small">{c.domain}</span>
-              </button>
-            ))}
-          </div>
+      <header className="learn-heading">
+        <div><span className="learn-eyebrow">EXPLORE AND LEARN</span><h1>Learn</h1><p>Personalized learning paths. Focused practice. Real understanding.</p></div>
+        <blockquote>“Learn what you need.<br />When you need it.”</blockquote>
+      </header>
+
+      <nav className="learn-tabs" aria-label="Learning views" role="tablist">
+        {tabs.map(({ id, label, icon: Icon }) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} className={`learn-tab${activeTab === id ? ' is-active' : ''}`} onClick={() => setActiveTab(id)}><Icon size={22} />{label}{id === 'bookmarks' && bookmarks.length > 0 && <span className="learn-tab-count">{bookmarks.length}</span>}</button>)}
+      </nav>
+
+      <section className="learn-browser" aria-label="Browse learning topics">
+        <label className="learn-topic-search"><Search size={22} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search for topics, skills, or concepts..." aria-label="Filter topics" /></label>
+        <div className="learn-filter-row" role="group" aria-label="Filter by progress">
+          {filters.map(filter => <button type="button" key={filter} className={`learn-filter${statusFilter === filter ? ' is-active' : ''}`} aria-pressed={statusFilter === filter} onClick={() => setStatusFilter(filter)}>{filter}</button>)}
+          <button type="button" className="learn-upload-link" onClick={onNavigateToUpload}><UploadCloud size={17} /> Add material</button>
         </div>
 
-        <div className="concept-main-content">
-          <div className="card">
-            <div className="card-header">
-              <div>
-                <span className="badge badge-accent">{activeConcept.domain}</span>
-                <h2>{activeConcept.title}</h2>
+        <div className="learn-topic-list" aria-live="polite">
+          {loading ? <div className="learn-empty">Loading your learning topics…</div> : visibleTopics.length === 0 ? (
+            <div className="learn-empty"><BookOpen size={26} /><strong>{activeTab === 'bookmarks' ? 'No bookmarks yet' : 'No topics found'}</strong><span>{activeTab === 'bookmarks' ? 'Save a topic with the bookmark button and it will appear here.' : 'Try another search or progress filter, or add your own learning material.'}</span>{subjects.length === 0 && <button onClick={onNavigateToUpload}><UploadCloud size={16} /> Upload learning material</button>}</div>
+          ) : visibleTopics.map((topic, index) => {
+            const status = statuses[topic.id] || 'Not Started';
+            const Icon = topicIcons[index % topicIcons.length];
+            const bookmarked = bookmarks.includes(topic.id);
+            const startTopic = () => { updateStatus(topic.id, 'In Progress'); onSelectChapter(topic); };
+            return <article className="learn-topic-row" key={topic.id}>
+              <span className="learn-topic-icon"><Icon size={27} strokeWidth={1.8} /></span>
+              <div className="learn-topic-copy"><strong>{topic.title}</strong><span>{topic.skills_count ?? topic.questions_count ?? '—'} subtopics <i /> {topic.subject || 'Core'} <em className={`learn-status status-${status.toLowerCase().replace(' ', '-')}`}>{status}</em></span></div>
+              <div className="learn-topic-actions">
+                <button type="button" className={`learn-bookmark${bookmarked ? ' is-saved' : ''}`} aria-label={bookmarked ? `Remove ${topic.title} from bookmarks` : `Bookmark ${topic.title}`} aria-pressed={bookmarked} onClick={() => toggleBookmark(topic.id)}><Bookmark size={19} fill={bookmarked ? 'currentColor' : 'none'} /></button>
+                {status === 'Completed' ? <button className="learn-start is-complete" onClick={startTopic}><CheckCircle2 size={17} /> Review</button> : <button className={`learn-start${status === 'In Progress' ? ' is-progress' : ''}`} onClick={startTopic}>{status === 'In Progress' ? 'Continue' : 'Start'} <ArrowRight size={17} /></button>}
+                {status !== 'Completed' && <button type="button" className="learn-mark-done" title="Mark completed" aria-label={`Mark ${topic.title} completed`} onClick={() => updateStatus(topic.id, 'Completed')}><Check size={16} /></button>}
               </div>
-              <div className="mastery-indicator">
-                <span className="badge badge-success">{activeConcept.status.toUpperCase()}</span>
-              </div>
-            </div>
-
-            <p className="concept-description">{activeConcept.description}</p>
-
-            <div className="prereqs-box">
-              <strong>Prerequisite Knowledge Graph Links:</strong>
-              <div className="tag-cloud mt-2">
-                {activeConcept.prerequisites.map((p, idx) => (
-                  <span key={idx} className="tag tag-accent">
-                    🔗 {p}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="interactive-sandbox">
-              <div className="sandbox-header">
-                <h4>Interactive Concept Explorer</h4>
-                <button className="btn btn-sm btn-secondary" onClick={requestHint}>
-                  💡 Ask Twin For Scaffolded Hint
-                </button>
-              </div>
-
-              {twinHint && (
-                <div className="twin-hint-bubble">
-                  {twinHint}
-                </div>
-              )}
-
-              <div className="interactive-canvas-placeholder">
-                <div className="canvas-elements">
-                  <div className="input-node">Input Vector [x1, x2]</div>
-                  <div className="arrow">&rarr;</div>
-                  <div className="hidden-layer">Activation &sigma;(W&middot;x + b)</div>
-                  <div className="arrow">&rarr;</div>
-                  <div className="output-node">Prediction y&#770;</div>
-                </div>
-                <p className="text-muted small text-center mt-3">
-                  Interactive dynamic simulation dynamically tuned to your cognitive pace.
-                </p>
-              </div>
-            </div>
-
-            <div className="learn-actions">
-              <button className="btn btn-primary">Check Understanding</button>
-              <button className="btn btn-secondary">Mark Complete</button>
-            </div>
-          </div>
+            </article>;
+          })}
         </div>
-      </div>
+      </section>
     </div>
   );
 };

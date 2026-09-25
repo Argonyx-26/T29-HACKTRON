@@ -1,51 +1,38 @@
-# Byte-compiled / optimized / DLL files
+# Environment & Secret files
+.env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+backend/knowledge_twin.db
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
 venv/
 .venv/
 ENV/
-
-# Environment variables
-.env
-
-# Database
-*.db
-*.sqlite3
-
-# Unit test / coverage
 .pytest_cache/
 .coverage
 htmlcov/
 
-# IDE
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Uploads & local storage
+backend/uploads/*
+!backend/uploads/.gitkeep
+frontend/uploads/*
+
+# IDE & OS
 .vscode/
 .idea/
-
-# OS files
 .DS_Store
 Thumbs.db

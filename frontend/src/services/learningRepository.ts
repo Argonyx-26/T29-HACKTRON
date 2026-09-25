@@ -1,302 +1,201 @@
+import { apiClient } from '../api/client';
 import {
-  KnowledgeConcept,
-  DiagnosticAssessment,
-  InterventionPlan,
-  StudyGroup,
-  UploadedMaterial,
-  UserProfile,
-  MasteryState,
+  User,
+  Subject,
+  Chapter,
+  Skill,
+  Question,
+  KnowledgeTwinView,
+  DiagnosisResult,
+  RetestResult,
+  TeacherOverview
 } from '../types';
-import ApiClient from '../api/client';
 
-export const mockUser: UserProfile = {
-  id: 'usr-101',
-  name: 'Alice Zhang',
-  email: 'alice@knowledge-twin.edu',
-  role: 'student',
-  gradeLevel: 'Grade 11-12 STEM',
-  streakDays: 14,
-  totalPoints: 2450,
-};
+export interface LearnerProgressSummary {
+  user_id: string;
+  total_attempts: number;
+  correct_attempts: number;
+  score_percentage: number | null;
+  assessed_skills_count: number;
+  recent_activity: LearnerActivityItem[];
+}
 
-export const mockConcepts: KnowledgeConcept[] = [
-  {
-    id: 'c-vectors',
-    title: 'Vector Decomposition',
-    domain: 'Classical Mechanics',
-    description: 'Resolving vectors into orthogonal Cartesian components using trigonometry.',
-    masteryLevel: 92,
-    status: 'mastered',
-    prerequisites: ['Basic Trigonometry'],
-    cognitiveLoad: 'low',
-    lastPracticed: '2 hours ago',
-  },
-  {
-    id: 'c-kinematics',
-    title: 'Velocity & Acceleration Profiles',
-    domain: 'Classical Mechanics',
-    description: 'Interpreting instantaneous velocity, acceleration curves, and jerk in 1D kinematics.',
-    masteryLevel: 88,
-    status: 'proficient',
-    prerequisites: ['Vector Decomposition'],
-    cognitiveLoad: 'medium',
-    lastPracticed: 'Yesterday',
-  },
-  {
-    id: 'c-projectile',
-    title: '2D Projectile Motion',
-    domain: 'Classical Mechanics',
-    description: 'Parabolic trajectories, time of flight, horizontal range, and launch angle optimizations.',
-    masteryLevel: 86,
-    status: 'proficient',
-    prerequisites: ['Vector Decomposition', 'Velocity & Acceleration Profiles'],
-    cognitiveLoad: 'high',
-    lastPracticed: '3 days ago',
-  },
-  {
-    id: 'c-friction',
-    title: 'Friction & Drag Forces',
-    domain: 'Newtonian Dynamics',
-    description: 'Static vs kinetic friction coefficients, normal reaction forces, and terminal velocity modeling.',
-    masteryLevel: 62,
-    status: 'developing',
-    prerequisites: ['Newton Laws & Free-Body Diagrams'],
-    cognitiveLoad: 'medium',
-    lastPracticed: '5 days ago',
-  },
-];
+export interface LearnerActivityItem {
+  id: string;
+  user_id: string;
+  type: 'assessment' | 'retest';
+  title: string;
+  score_or_result?: string;
+  timestamp: string;
+}
 
-export const mockInterventions: InterventionPlan[] = [
-  {
-    id: 'inv-1',
-    studentId: 'usr-101',
-    conceptId: 'c-friction',
-    conceptTitle: 'Friction & Drag Forces',
-    misconception: 'Confusing normal contact force with gravitational weight on inclined planes.',
-    recommendedAction: 'Review free-body diagrams on 30-degree inclines and complete 3 micro-practice drills.',
-    urgency: 'medium',
-    completed: false,
-  },
-];
+const STORAGE_KEY_CURRENT_USER_ID = 'kt_current_user_id';
+const STORAGE_KEY_USERS = 'kt_users_list';
 
-export const mockStudyGroups: StudyGroup[] = [
-  {
-    id: 'grp-1',
-    name: 'Section A - Physics 2026',
-    topic: 'Classical Mechanics & Dynamics',
-    membersCount: 6,
-    activeNow: 4,
-    nextSessionTime: 'Today, 4:00 PM',
-  },
-];
 
-export const mockUploadedMaterials: UploadedMaterial[] = [
-  {
-    id: 'mat-1',
-    fileName: 'Lecture_01_Vectors_and_Kinematics.pdf',
-    fileSize: '3.2 MB',
-    uploadedAt: 'Sep 25, 2026',
-    status: 'indexed',
-    extractedConceptsCount: 5,
-  },
-];
-
-export const mockDiagnostic: DiagnosticAssessment = {
-  id: 'diag-1',
-  title: 'Diagnostic: Kinematics & Vector Fundamentals',
-  subject: 'Classical Mechanics',
-  estimatedMinutes: 10,
-  questions: [
-    {
-      id: 'q-1',
-      conceptId: 'c-vectors',
-      prompt: 'If a vector of magnitude 50 N is oriented at 30° above the horizontal, what is its horizontal component?',
-      options: [
-        '25.0 N',
-        '43.3 N',
-        '50.0 N',
-        '35.4 N',
-      ],
-      correctIndex: 1,
-      explanation: 'Horizontal component = 50 * cos(30°) = 50 * 0.866 = 43.3 N.',
-      difficulty: 'easy',
-    },
-    {
-      id: 'q-2',
-      conceptId: 'c-projectile',
-      prompt: 'At the apex of a projectile trajectory (ignoring air resistance), which quantity is zero?',
-      options: [
-        'Total acceleration',
-        'Horizontal velocity',
-        'Vertical component of velocity',
-        'Gravitational potential energy',
-      ],
-      correctIndex: 2,
-      explanation: 'At the peak of flight, vertical velocity momentarily reaches zero before reversing direction.',
-      difficulty: 'medium',
-    },
-  ],
-};
-
-function scoreToMasteryState(score: number): MasteryState {
-  if (score >= 85) return 'mastered';
-  if (score >= 70) return 'proficient';
-  if (score >= 50) return 'developing';
-  if (score > 0) return 'emerging';
-  return 'not_started';
+function generateUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 11);
 }
 
 export const learningRepository = {
-  getUser: async (): Promise<UserProfile> => {
+  // ==========================================
+  // 1. LOCAL LEARNER IDENTITY
+  // ==========================================
+
+  getCurrentUser(): User | null {
     try {
-      const cohort = await ApiClient.get<any[]>('/teacher/cohort');
-      if (cohort && cohort.length > 0) {
-        const student = cohort[0];
-        return {
-          id: student.student_id,
-          name: student.full_name,
-          email: student.email,
-          role: 'student',
-          gradeLevel: 'Grade 11-12 STEM',
-          streakDays: 14,
-          totalPoints: Math.round(student.overall_mastery * 3000),
-        };
-      }
+      const currentId = localStorage.getItem(STORAGE_KEY_CURRENT_USER_ID);
+      if (!currentId) return null;
+      const users = this.listUsers();
+      return users.find(u => u.user_id === currentId) || null;
     } catch {
-      // Backend unavailable or database unseeded, fallback to mockUser
+      return null;
     }
-    return mockUser;
   },
 
-  getConcepts: async (studentId: string = mockUser.id): Promise<KnowledgeConcept[]> => {
-    try {
-      const graph = await ApiClient.get<any>(`/twin/${studentId}/graph`);
-      if (graph && graph.nodes && graph.nodes.length > 0) {
-        return graph.nodes.map((n: any) => {
-          const scorePercent = Math.round(n.mastery * 100);
-          return {
-            id: n.id,
-            title: n.label,
-            domain: 'Curriculum Concept',
-            description: `Concept Code: ${n.code}. Difficulty index: ${n.difficulty}`,
-            masteryLevel: scorePercent,
-            status: scoreToMasteryState(scorePercent),
-            prerequisites: n.prerequisites || [],
-            cognitiveLoad: n.difficulty > 0.6 ? 'high' : (n.difficulty > 0.35 ? 'medium' : 'low'),
-            lastPracticed: 'Recently updated',
-          };
-        });
-      }
-    } catch {
-      // Backend offline, fallback to mockConcepts
-    }
-    return mockConcepts;
+  getLastUser(): User | null {
+    const current = this.getCurrentUser();
+    if (current) return current;
+    const users = this.listUsers();
+    return users.length > 0 ? users[0] : null;
   },
 
-  getInterventions: async (studentId: string = mockUser.id): Promise<InterventionPlan[]> => {
+  listUsers(): User[] {
     try {
-      const res = await ApiClient.get<any[]>(`/interventions?student_id=${studentId}`);
-      if (res && res.length > 0) {
-        return res.map((item) => ({
-          id: item.id,
-          studentId: item.student_id,
-          conceptId: item.topic_id,
-          conceptTitle: item.topic_title || 'Targeted Concept',
-          misconception: item.recommendation_reason || 'Identified learning bottleneck.',
-          recommendedAction: item.action_plan || 'Practice reinforcement exercises.',
-          urgency: item.type === 'teacher_1on1' ? 'high' : 'medium',
-          completed: item.status === 'completed',
-        }));
-      }
+      const raw = localStorage.getItem(STORAGE_KEY_USERS);
+      if (!raw) return [];
+      return JSON.parse(raw) as User[];
     } catch {
-      // Fallback
+      return [];
     }
-    return mockInterventions;
   },
 
-  getStudyGroups: async (): Promise<StudyGroup[]> => {
-    try {
-      const groups = await ApiClient.get<any[]>('/groups');
-      if (groups && groups.length > 0) {
-        return groups.map((g) => ({
-          id: g.id,
-          name: g.name,
-          topic: g.description || 'Active Study Cohort',
-          membersCount: (g.members && g.members.length) || 6,
-          activeNow: 3,
-          nextSessionTime: 'Cohort Session: Today',
-        }));
-      }
-    } catch {
-      // Fallback
-    }
-    return mockStudyGroups;
-  },
-
-  getMaterials: async (): Promise<UploadedMaterial[]> => {
-    try {
-      const docs = await ApiClient.get<any[]>('/documents');
-      if (docs && docs.length > 0) {
-        return docs.map((d) => ({
-          id: d.id,
-          fileName: d.title,
-          fileSize: `${Math.round(d.file_size / 1024)} KB`,
-          uploadedAt: new Date(d.uploaded_at).toLocaleDateString(),
-          status: d.status === 'processed' ? 'indexed' : 'processing',
-          extractedConceptsCount: 6,
-        }));
-      }
-    } catch {
-      // Fallback
-    }
-    return mockUploadedMaterials;
-  },
-
-  uploadMaterial: async (file: File): Promise<UploadedMaterial> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const doc = await ApiClient.uploadFile<any>('/documents/upload', formData);
-    return {
-      id: doc.id,
-      fileName: doc.title,
-      fileSize: `${Math.round(doc.file_size / 1024)} KB`,
-      uploadedAt: 'Just now',
-      status: 'indexed',
-      extractedConceptsCount: 5,
+  saveUser(displayName: string, role: 'student' | 'teacher'): User {
+    const trimmed = displayName.trim() || (role === 'teacher' ? 'Teacher' : 'Student');
+    const newUser: User = {
+      user_id: generateUUID(),
+      display_name: trimmed,
+      role,
+      created_at: new Date().toISOString()
     };
-  },
 
-  getDiagnostic: async (): Promise<DiagnosticAssessment> => {
-    try {
-      const assessments = await ApiClient.get<any[]>('/assessments');
-      if (assessments && assessments.length > 0) {
-        const a = assessments[0];
-        return {
-          id: a.id,
-          title: a.title,
-          subject: 'Physics Mechanics Diagnostic',
-          estimatedMinutes: 10,
-          questions: mockDiagnostic.questions,
-        };
-      }
-    } catch {
-      // Fallback
-    }
-    return mockDiagnostic;
-  },
+    const users = this.listUsers();
+    const updatedUsers = [newUser, ...users.filter(u => u.user_id !== newUser.user_id)];
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
+    localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, newUser.user_id);
 
-  recordPractice: async (studentId: string, topicId: string, isCorrect: boolean) => {
-    return ApiClient.post(`/twin/${studentId}/practice`, {
-      topic_id: topicId,
-      is_correct: isCorrect,
+    // Synchronize identity with PostgreSQL authoritative backend
+    apiClient.registerStudent({
+      id: newUser.user_id,
+      name: newUser.display_name,
+      role: newUser.role
+    }).catch(err => {
+      console.warn('Backend student sync notice:', err);
     });
+
+    return newUser;
   },
 
-  getTwinDiagnosis: async (studentId: string) => {
-    return ApiClient.get<any>(`/twin/${studentId}/diagnosis`);
+  switchUser(userId: string): User | null {
+    const users = this.listUsers();
+    const target = users.find(u => u.user_id === userId);
+    if (target) {
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, target.user_id);
+      return target;
+    }
+    return null;
   },
 
-  seedDemoCohort: async () => {
-    return ApiClient.post<any>('/admin/seed');
+  clearCurrentUser(): void {
+    localStorage.removeItem(STORAGE_KEY_CURRENT_USER_ID);
   },
+
+  // ==========================================
+  // 2. CURRICULUM (DELEGATES TO API CLIENT)
+  // ==========================================
+
+  async getSubjects(): Promise<Subject[]> {
+    return apiClient.getSubjects();
+  },
+
+  async getChapters(subjectId?: string): Promise<Chapter[]> {
+    if (subjectId) {
+      return apiClient.getSubjectChapters(subjectId);
+    }
+    return apiClient.getChapters();
+  },
+
+  async getSkills(chapterId: string): Promise<Skill[]> {
+    return apiClient.getChapterSkills(chapterId);
+  },
+
+  async getQuestions(chapterId: string): Promise<Question[]> {
+    return apiClient.getChapterQuestions(chapterId);
+  },
+
+  // ==========================================
+  // 3. LEARNER STATE & AUTHORITATIVE BACKEND PERSISTENCE
+  // ==========================================
+
+  async getTwin(userId: string, chapterId?: string): Promise<KnowledgeTwinView> {
+    return apiClient.getStudentTwin(userId, chapterId);
+  },
+
+  async submitAttempt(payload: {
+    student_id: string;
+    question_id: string;
+    answer: string;
+    work_shown: string[];
+    input_mode: string;
+  }): Promise<DiagnosisResult> {
+    // Authoritative submission: written directly to PostgreSQL via FastAPI
+    return apiClient.submitAttempt(payload);
+  },
+
+  async submitRetest(payload: {
+    student_id: string;
+    intervention_id: string;
+    question_id: string;
+    answer: string;
+    work_shown: string[];
+  }): Promise<RetestResult> {
+    // Authoritative retest: written directly to PostgreSQL via FastAPI
+    return apiClient.submitRetest(payload);
+  },
+
+  async getActivity(userId: string): Promise<LearnerActivityItem[]> {
+    try {
+      return await apiClient.getStudentActivity(userId);
+    } catch (e) {
+      console.warn('Failed to fetch activity from backend:', e);
+      return [];
+    }
+  },
+
+  async getProgress(userId: string): Promise<LearnerProgressSummary> {
+    try {
+      return await apiClient.getStudentProgress(userId);
+    } catch (e) {
+      console.warn('Failed to fetch progress from backend:', e);
+      return {
+        user_id: userId,
+        total_attempts: 0,
+        correct_attempts: 0,
+        score_percentage: null,
+        assessed_skills_count: 0,
+        recent_activity: []
+      };
+    }
+  },
+
+  // ==========================================
+  // 4. TEACHER ANALYTICS
+  // ==========================================
+
+  async getTeacherOverview(): Promise<TeacherOverview> {
+    return apiClient.getTeacherOverview();
+  }
 };
