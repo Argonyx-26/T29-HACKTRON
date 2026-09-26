@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { KnowledgeTwinView as KnowledgeTwinType } from '../../types';
 import { MistakeCardList } from './MistakeCardList';
+import { PrerequisiteDAG } from './PrerequisiteDAG';
 
 interface KnowledgeTwinViewProps {
   twin: KnowledgeTwinType | null;
@@ -15,7 +16,7 @@ interface KnowledgeTwinViewProps {
   onNavigateToHome?: () => void;
 }
 
-type TwinSection = 'Overview' | 'Mistakes & Patterns' | 'Learning Style' | 'Focus Areas' | 'Growth Insights';
+type TwinSection = 'Overview' | 'Knowledge Graph' | 'Mistakes & Patterns' | 'Learning Style' | 'Focus Areas' | 'Growth Insights';
 
 export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNavigateToDiagnostic, onNavigateToUpload, onStartIntervention, onNavigateToHome }) => {
   const [activeSection, setActiveSection] = useState<TwinSection>('Overview');
@@ -66,7 +67,7 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
     </header>
 
     <nav className="student-twin-tabs" aria-label="Knowledge Twin sections">
-      {(['Overview', 'Mistakes & Patterns', 'Learning Style', 'Focus Areas', 'Growth Insights'] as TwinSection[]).map(section => (
+      {(['Overview', 'Knowledge Graph', 'Mistakes & Patterns', 'Learning Style', 'Focus Areas', 'Growth Insights'] as TwinSection[]).map(section => (
         <button
           key={section}
           className={activeSection === section ? 'active' : ''}
@@ -78,9 +79,26 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
               {twin?.active_misconceptions?.length}
             </small>
           )}
+          {section === 'Knowledge Graph' && (
+            <small style={{ marginLeft: '6px', background: '#2563eb', color: '#fff', padding: '1px 6px', borderRadius: '10px', fontWeight: 800, fontSize: '0.68rem' }}>
+              DAG
+            </small>
+          )}
         </button>
       ))}
     </nav>
+
+    {/* KNOWLEDGE GRAPH (DAG) DEDICATED SECTION */}
+    {activeSection === 'Knowledge Graph' && (
+      <section style={{ marginTop: '20px' }}>
+        <PrerequisiteDAG
+          skills={skills}
+          onPracticeSkill={(skillId, skillCode) => {
+            onStartIntervention(skillId || skillCode, 'PAT_DIST_PARTIAL', 'procedural');
+          }}
+        />
+      </section>
+    )}
 
     {/* MISTAKES & PATTERNS FIRST-CLASS SECTION */}
     {activeSection === 'Mistakes & Patterns' && (
@@ -177,6 +195,18 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
             </div>
           ))}
         </div>
+      </section>
+    )}
+
+    {/* PREREQUISITE KNOWLEDGE GRAPH (DAG) PREVIEW ON OVERVIEW */}
+    {activeSection === 'Overview' && (
+      <section style={{ marginTop: '20px' }}>
+        <PrerequisiteDAG
+          skills={skills}
+          onPracticeSkill={(skillId, skillCode) => {
+            onStartIntervention(skillId || skillCode, 'PAT_DIST_PARTIAL', 'procedural');
+          }}
+        />
       </section>
     )}
 

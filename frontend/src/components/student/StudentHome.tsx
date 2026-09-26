@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KnowledgeTwinView, Chapter } from '../../types';
-import { ArrowRight, Bell, BookOpen, CheckSquare, Compass, FileText, Search, Sparkles, Sprout, Target, TrendingUp } from 'lucide-react';
+import { ArrowRight, Bell, BookOpen, CheckSquare, Compass, FileText, Search, Sparkles, Sprout, Target, TrendingUp, Layers } from 'lucide-react';
 
 interface StudentHomeProps {
   twin: KnowledgeTwinView | null;
@@ -87,7 +87,7 @@ export const StudentHome: React.FC<StudentHomeProps> = ({ twin, activeChapter, o
         <aside className="learning-side-column">
           <section className="focus-card"><h2>Today’s Focus</h2><div className="focus-content"><div className="focus-donut" style={{ '--focus-value': `${focusPercent}%` } as React.CSSProperties}><span><strong>{tasksLeft}</strong><small>Tasks left</small></span></div><ul><li><i className="focus-dot purple" />{skills.length > evidencedSkills.length ? '1 Learning' : '0 Learning'}</li><li><i className="focus-dot violet" />{misconceptions.length ? `${misconceptions.length} Practice` : '1 Assessment'}</li><li><i className="focus-dot muted" />{responseCount ? `${evidencedSkills.length} Skills explored` : '0 Completed'}</li></ul></div></section>
           <section className="learning-quote-card"><p>“Consistency<br />builds clarity.”</p><span /></section>
-          <section className="quick-actions-card"><h2>Quick Actions</h2><button onClick={onNavigateToLearn}><Compass size={18} />Explore Topics <ArrowRight size={16} /></button><button onClick={onNavigateToAssess}><CheckSquare size={18} />Take a Diagnostic <ArrowRight size={16} /></button><button onClick={onNavigateToProgress}><TrendingUp size={18} />View Progress <ArrowRight size={16} /></button></section>
+          <section className="quick-actions-card"><h2>Quick Actions</h2><button onClick={onNavigateToLearn}><Compass size={18} />Explore Topics <ArrowRight size={16} /></button><button onClick={onNavigateToAssess}><CheckSquare size={18} />Take a Diagnostic <ArrowRight size={16} /></button><button onClick={onNavigateToTwin}><Layers size={18} />Knowledge Graph <ArrowRight size={16} /></button><button onClick={onNavigateToProgress}><TrendingUp size={18} />View Progress <ArrowRight size={16} /></button></section>
           <section className="learning-promo-card"><span>Learn deeper.<br />Go further.</span><i /></section>
         </aside>
       </div>
