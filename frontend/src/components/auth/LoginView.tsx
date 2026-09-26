@@ -92,6 +92,13 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
                 className="login-reader-gif"
                 src="/login-reader.jpg"
                 alt="Pencil sketch of a student reading a book"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.dataset.triedFallback) {
+                    target.dataset.triedFallback = 'true';
+                    target.src = '/login-reader-sketch.png';
+                  }
+                }}
               />
             </div>
           </div>

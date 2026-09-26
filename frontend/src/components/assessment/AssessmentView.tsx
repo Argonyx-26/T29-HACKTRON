@@ -129,6 +129,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     learningRepository.getAssessmentReports(studentId).then(setReports);
   };
 
+  const availableSubjects = useMemo(() => {
+    const map = new Map<string, { name: string; chapters: Chapter[]; totalQuestions: number; totalSkills: number }>();
+    chapters.forEach((c) => {
+      const sub = c.subject || 'General';
+      if (!map.has(sub)) {
+        map.set(sub, { name: sub, chapters: [], totalQuestions: 0, totalSkills: 0 });
+      }
+      const entry = map.get(sub)!;
+      entry.chapters.push(c);
+      entry.totalQuestions += c.questions_count || 0;
+      entry.totalSkills += c.skills_count || 0;
+    });
+    return Array.from(map.values());
+  }, [chapters]);
+
   if (running) {
     return (
       <div className="assessment-runner-shell">
@@ -159,21 +174,6 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     'All Subjects',
     ...Array.from(new Set(chapters.map((chapter) => chapter.subject).filter(Boolean)))
   ];
-
-  const availableSubjects = useMemo(() => {
-    const map = new Map<string, { name: string; chapters: Chapter[]; totalQuestions: number; totalSkills: number }>();
-    chapters.forEach((c) => {
-      const sub = c.subject || 'General';
-      if (!map.has(sub)) {
-        map.set(sub, { name: sub, chapters: [], totalQuestions: 0, totalSkills: 0 });
-      }
-      const entry = map.get(sub)!;
-      entry.chapters.push(c);
-      entry.totalQuestions += c.questions_count || 0;
-      entry.totalSkills += c.skills_count || 0;
-    });
-    return Array.from(map.values());
-  }, [chapters]);
 
   const latestAttempts = filteredAttempts.slice(0, tab === 'past' ? 8 : 4);
   const scorePercent = progress?.score_percentage ?? 0;

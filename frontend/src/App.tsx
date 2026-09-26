@@ -135,7 +135,22 @@ export const App: React.FC = () => {
     if (currentUser?.user_id && role === 'student') {
       loadStudentTwin(currentUser.user_id, activeChapter?.id);
     }
-  }, [currentUser, activeChapter, role]);
+
+    // Verify / auto-heal authoritative student ID from backend database
+    if (currentUser?.display_name && role === 'student') {
+      apiClient.registerStudent({
+        id: currentUser.user_id,
+        name: currentUser.display_name,
+        role: currentUser.role
+      }).then((backendStudent) => {
+        if (backendStudent?.id && backendStudent.id !== currentUser.user_id) {
+          const updatedUser = { ...currentUser, user_id: backendStudent.id };
+          setCurrentUser(updatedUser);
+          localStorage.setItem('kt_current_user_id', backendStudent.id);
+        }
+      }).catch(() => {});
+    }
+  }, [currentUser?.user_id, currentUser?.display_name, activeChapter, role]);
 
   const loadInitialData = async () => {
     try {

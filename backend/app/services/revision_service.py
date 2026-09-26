@@ -176,10 +176,25 @@ class RevisionService:
                     "difficulty": q.difficulty or "medium"
                 })
 
+        if not practice_questions:
+            # Fallback to high-yield active questions so retrieval practice is always immediately ready
+            fallback_qs = db.query(Question).filter(Question.active == True).limit(3).all()
+            for q in fallback_qs:
+                sk = db.query(Skill).filter(Skill.id == q.skill_id).first() if q.skill_id else None
+                practice_questions.append({
+                    "question_id": q.id,
+                    "skill_id": q.skill_id or "sk_gen_01",
+                    "skill_code": sk.code if sk else "REV-01",
+                    "skill_name": sk.name if sk else "Core Fundamentals",
+                    "question_text": q.question_text,
+                    "correct_answer": q.correct_answer,
+                    "difficulty": q.difficulty or "medium"
+                })
+
         if not skills_memory:
-            rationale = "No assessed skills yet. Complete diagnostic questions in Learn or Assess to begin tracking your personal forgetting curves in real time."
-            session_title = "Continuous Retention Ready"
-            est_minutes = 0
+            rationale = "Explore a quick 3-minute diagnostic practice session to baseline your initial cognitive profile and activate retention tracking."
+            session_title = "3-Minute Starter Retrieval Practice"
+            est_minutes = 3
         elif needs_today > 0:
             rationale = (
                 f"{needs_today} skill{'s have' if needs_today != 1 else ' has'} entered the fading or at-risk zone. "

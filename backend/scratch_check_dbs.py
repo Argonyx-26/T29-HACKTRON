@@ -1,17 +1,33 @@
-import urllib.request
-import json
+import glob
+import os
+import sqlite3
 
-for uid in ['58424d03-90e1-462c-84e7-bc7f2a50c430', '39d1529c-b003-4756-a8ae-74c806ec3b39']:
-    url = f'http://127.0.0.1:8000/api/students/{uid}/twin'
-    try:
-        with urllib.request.urlopen(url) as resp:
-            data = json.loads(resp.read().decode())
-            print(f"=== TWIN FOR {uid} ({data.get('student_name')}) ===")
-            print("  Chapter:", data.get('chapter_title'))
-            print("  Overall Mastery:", data.get('overall_mastery'))
-            print("  Skills count:", len(data.get('skills', [])))
-            for s in data.get('skills', []):
-                print(f"    - {s.get('code')}: mastery={s.get('mastery')} trend={s.get('trend')}")
-            print("  Active misconceptions:", len(data.get('active_misconceptions', [])))
-    except Exception as e:
-        print(f"Error for {uid}: {e}")
+conn = sqlite3.connect('backend/knowledge_twin.db')
+cur = conn.cursor()
+print('=== SHARED DB STUDENTS ===')
+cur.execute('SELECT id, name, email FROM students')
+for row in cur.fetchall():
+    print(row)
+
+print('\n=== SHARED DB ATTEMPTS BY STUDENT ===')
+cur.execute('SELECT student_id, COUNT(*) FROM attempts GROUP BY student_id')
+for row in cur.fetchall():
+    print(row)
+
+print('\n=== SHARED DB REPORTS BY STUDENT ===')
+cur.execute('SELECT id, student_id, chapter_title, score_percent, created_at FROM assessment_reports')
+for row in cur.fetchall():
+    print(row)
+conn.close()
+
+print('\n=== PER-STUDENT DBS ===')
+for p in glob.glob('backend/students/*.db'):
+    c = sqlite3.connect(p)
+    cr = c.cursor()
+    cr.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = [r[0] for r in cr.fetchall()]
+    s = cr.execute('SELECT id, name FROM students').fetchall() if 'students' in tables else []
+    a = cr.execute('SELECT COUNT(*) FROM attempts').fetchone()[0] if 'attempts' in tables else 0
+    r = cr.execute('SELECT COUNT(*) FROM assessment_reports').fetchone()[0] if 'assessment_reports' in tables else 0
+    print(f'{os.path.basename(p)}: students={s}, attempts={a}, reports={r}')
+    c.close()
