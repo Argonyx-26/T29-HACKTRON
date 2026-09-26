@@ -34,27 +34,27 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, onBackToLanding }
     setRole(newRole);
   };
 
-  const handleAuthSubmit = (e: React.FormEvent) => {
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     let displayName = name.trim();
     if (!displayName) {
       if (email.includes('@')) {
         const username = email.split('@')[0];
         displayName = username.charAt(0).toUpperCase() + username.slice(1);
-        if (displayName.toLowerCase() === 'student') displayName = existingUser?.display_name || 'Aarav Sharma';
+        if (displayName.toLowerCase() === 'student') displayName = 'Harshit';
         if (displayName.toLowerCase() === 'teacher') displayName = 'Dr. Vance';
       } else {
-        displayName = email.trim() || (role === 'student' ? 'Student' : 'Teacher');
+        displayName = email.trim() || (role === 'student' ? 'Harshit' : 'Teacher');
       }
     }
 
-    const user = learningRepository.saveUser(displayName, role);
+    const user = await learningRepository.loginOrCreateUserAsync(displayName, role, isRegisterMode);
     onLogin(user);
   };
 
-  const handleSocialLogin = (provider: string) => {
-    const defaultName = role === 'student' ? (existingUser?.display_name || 'Aarav Sharma') : 'Dr. Vance';
-    const user = learningRepository.saveUser(defaultName, role);
+  const handleSocialLogin = async (provider: string) => {
+    const defaultName = role === 'student' ? (existingUser?.display_name || 'Harshit') : 'Dr. Vance';
+    const user = await learningRepository.loginOrCreateUserAsync(defaultName, role, false);
     onLogin(user);
   };
 

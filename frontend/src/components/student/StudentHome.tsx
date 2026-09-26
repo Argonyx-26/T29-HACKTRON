@@ -10,7 +10,7 @@ interface StudentHomeProps {
   onNavigateToTwin: () => void;
   onNavigateToProgress: () => void;
   onNavigateToIntervention: (skillId: string, patternId: string, classification: string) => void;
-  onSearchTopics: (query: string) => void;
+  onSearchTopics?: (query: string) => void;
 }
 
 export const StudentHome: React.FC<StudentHomeProps> = ({ twin, activeChapter, onNavigateToLearn, onNavigateToAssess, onNavigateToTwin, onNavigateToProgress, onNavigateToIntervention, onSearchTopics }) => {
@@ -33,8 +33,22 @@ export const StudentHome: React.FC<StudentHomeProps> = ({ twin, activeChapter, o
   return (
     <div className="learning-home fade-in">
       <div className="learning-topbar">
-        <label className="learning-search"><Search size={18} /><input aria-label="Search topics, skills, or questions" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && searchQuery.trim()) onSearchTopics(searchQuery.trim()); }} placeholder="Search for topics, skills, or questions..." /><kbd>⌘ K</kbd></label>
-        <button className="learning-notifications" aria-label="Notifications"><Bell size={19} /><i /></button>
+        <label className="learning-search">
+          <Search size={18} />
+          <input
+            aria-label="Search topics, skills, or questions"
+            value={searchQuery}
+            onChange={event => setSearchQuery(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' && searchQuery.trim() && onSearchTopics) {
+                onSearchTopics(searchQuery.trim());
+              }
+            }}
+            placeholder="Search for topics, skills, or questions..."
+          />
+          <kbd>⌘ K</kbd>
+        </label>
+        <button className="learning-notifications" aria-label="Notifications" onClick={onNavigateToTwin}><Bell size={19} /><i /></button>
       </div>
 
       <header className="learning-heading">

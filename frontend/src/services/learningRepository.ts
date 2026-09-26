@@ -8,7 +8,8 @@ import {
   KnowledgeTwinView,
   DiagnosisResult,
   RetestResult,
-  TeacherOverview
+  TeacherOverview,
+  AssessmentReport
 } from '../types';
 
 export interface LearnerProgressSummary {
@@ -73,8 +74,76 @@ export const learningRepository = {
     }
   },
 
-  saveUser(displayName: string, role: 'student' | 'teacher'): User {
+  async loginOrCreateUserAsync(displayName: string, role: 'student' | 'teacher', isRegisterMode: boolean = false): Promise<User> {
     const trimmed = displayName.trim() || (role === 'teacher' ? 'Teacher' : 'Student');
+    const users = this.listUsers();
+
+    let candidateId = generateUUID();
+    if (!isRegisterMode) {
+      const existing = users.find(
+        u => u.display_name.trim().toLowerCase() === trimmed.toLowerCase() && u.role === role
+      );
+      if (existing) {
+        candidateId = existing.user_id;
+      }
+    }
+
+    try {
+      const backendStudent = await apiClient.registerStudent({
+        id: candidateId,
+        name: trimmed,
+        role
+      });
+      const resolvedId = backendStudent.id || candidateId;
+      const resolvedUser: User = {
+        user_id: resolvedId,
+        display_name: backendStudent.name || trimmed,
+        role: backendStudent.role || role,
+        created_at: backendStudent.created_at || new Date().toISOString()
+      };
+      const updatedUsers = [resolvedUser, ...users.filter(u => u.user_id !== resolvedId && u.user_id !== candidateId)];
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, resolvedId);
+      return resolvedUser;
+    } catch (err) {
+      console.warn('Backend student sync notice:', err);
+      const localUser: User = {
+        user_id: candidateId,
+        display_name: trimmed,
+        role,
+        created_at: new Date().toISOString()
+      };
+      const updatedUsers = [localUser, ...users.filter(u => u.user_id !== candidateId)];
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
+      localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, candidateId);
+      return localUser;
+    }
+  },
+
+  loginOrCreateUser(displayName: string, role: 'student' | 'teacher', isRegisterMode: boolean = false): User {
+    const trimmed = displayName.trim() || (role === 'teacher' ? 'Teacher' : 'Student');
+    const users = this.listUsers();
+
+    if (!isRegisterMode) {
+      // Find existing user with matching display name and role
+      const existing = users.find(
+        u => u.display_name.trim().toLowerCase() === trimmed.toLowerCase() && u.role === role
+      );
+      if (existing) {
+        localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, existing.user_id);
+        // Ensure backend knows about this user and has their individual database ready
+        apiClient.registerStudent({
+          id: existing.user_id,
+          name: existing.display_name,
+          role: existing.role
+        }).catch(err => {
+          console.warn('Backend student sync notice:', err);
+        });
+        return existing;
+      }
+    }
+
+    // Otherwise create brand new isolated user with dedicated database ID
     const newUser: User = {
       user_id: generateUUID(),
       display_name: trimmed,
@@ -82,21 +151,62 @@ export const learningRepository = {
       created_at: new Date().toISOString()
     };
 
-    const users = this.listUsers();
     const updatedUsers = [newUser, ...users.filter(u => u.user_id !== newUser.user_id)];
     localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
     localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, newUser.user_id);
 
-    // Synchronize identity with PostgreSQL authoritative backend
     apiClient.registerStudent({
       id: newUser.user_id,
       name: newUser.display_name,
       role: newUser.role
+    }).then(backendStudent => {
+      if (backendStudent?.id && backendStudent.id !== newUser.user_id) {
+        const resolvedUser: User = {
+          user_id: backendStudent.id,
+          display_name: backendStudent.name || newUser.display_name,
+          role: backendStudent.role || newUser.role,
+          created_at: backendStudent.created_at || newUser.created_at
+        };
+        const currentList = this.listUsers();
+        const fixedUsers = [resolvedUser, ...currentList.filter(u => u.user_id !== backendStudent.id && u.user_id !== newUser.user_id)];
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(fixedUsers));
+        if (localStorage.getItem(STORAGE_KEY_CURRENT_USER_ID) === newUser.user_id) {
+          localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, backendStudent.id);
+        }
+      }
     }).catch(err => {
       console.warn('Backend student sync notice:', err);
     });
 
     return newUser;
+  },
+
+  updateUser(userId: string, newDisplayName: string): User {
+    const trimmed = newDisplayName.trim() || 'Learner';
+    const users = this.listUsers();
+    const target = users.find(u => u.user_id === userId);
+
+    const updated: User = target
+      ? { ...target, display_name: trimmed }
+      : { user_id: userId, display_name: trimmed, role: 'student', created_at: new Date().toISOString() };
+
+    const updatedUsers = [updated, ...users.filter(u => u.user_id !== userId)];
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(updatedUsers));
+    localStorage.setItem(STORAGE_KEY_CURRENT_USER_ID, updated.user_id);
+
+    apiClient.registerStudent({
+      id: updated.user_id,
+      name: updated.display_name,
+      role: updated.role
+    }).catch(err => {
+      console.warn('Backend student sync notice:', err);
+    });
+
+    return updated;
+  },
+
+  saveUser(displayName: string, role: 'student' | 'teacher'): User {
+    return this.loginOrCreateUser(displayName, role, false);
   },
 
   switchUser(userId: string): User | null {
@@ -164,6 +274,69 @@ export const learningRepository = {
   }): Promise<RetestResult> {
     // Authoritative retest: written directly to PostgreSQL via FastAPI
     return apiClient.submitRetest(payload);
+  },
+
+  async saveAssessmentReport(report: AssessmentReport): Promise<AssessmentReport> {
+    try {
+      const storageKey = `kt_reports_${report.student_id}`;
+      const existingRaw = localStorage.getItem(storageKey);
+      const existingList: AssessmentReport[] = existingRaw ? JSON.parse(existingRaw) : [];
+      const updatedList = [report, ...existingList.filter(r => r.id !== report.id)];
+      localStorage.setItem(storageKey, JSON.stringify(updatedList));
+    } catch (e) {
+      console.warn('LocalStorage save failed for report:', e);
+    }
+
+    try {
+      return await apiClient.saveAssessmentReport(report);
+    } catch (err) {
+      console.warn('Backend saveAssessmentReport notice:', err);
+      return report;
+    }
+  },
+
+  async getAssessmentReports(userId: string): Promise<AssessmentReport[]> {
+    let localReports: AssessmentReport[] = [];
+    try {
+      const storageKey = `kt_reports_${userId}`;
+      const raw = localStorage.getItem(storageKey);
+      if (raw) localReports = JSON.parse(raw);
+    } catch {
+      localReports = [];
+    }
+
+    try {
+      const remoteReports = await apiClient.getAssessmentReports(userId);
+      const remoteIds = new Set(remoteReports.map(r => r.id));
+      const merged = [...remoteReports];
+      for (const loc of localReports) {
+        if (!remoteIds.has(loc.id)) {
+          merged.push(loc);
+        }
+      }
+      merged.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      
+      try {
+        localStorage.setItem(`kt_reports_${userId}`, JSON.stringify(merged));
+      } catch {}
+
+      return merged;
+    } catch (e) {
+      console.warn('Failed to fetch assessment reports from backend, returning cached:', e);
+      return localReports;
+    }
+  },
+
+  async getAssessmentReportDetail(reportId: string, userId?: string): Promise<AssessmentReport | null> {
+    try {
+      return await apiClient.getAssessmentReportDetail(reportId);
+    } catch (e) {
+      if (userId) {
+        const cached = await this.getAssessmentReports(userId);
+        return cached.find(r => r.id === reportId) || null;
+      }
+      return null;
+    }
   },
 
   async getActivity(userId: string): Promise<LearnerActivityItem[]> {

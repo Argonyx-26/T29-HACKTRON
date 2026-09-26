@@ -5,15 +5,12 @@ import {
   CheckSquare,
   Layers,
   TrendingUp,
-  Settings,
-  HelpCircle,
   LogOut,
   Users,
   Sparkles,
-  X,
-  Globe,
   UserCheck,
-  FolderOpen
+  FolderOpen,
+  RotateCcw
 } from 'lucide-react';
 import { User } from '../../types';
 import { KnowledgeTwinLogo } from '../auth/LoginView';
@@ -36,8 +33,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onGoToLanding,
   onUpdateUser
 }) => {
-  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [showAccountModal, setShowAccountModal] = useState<boolean>(false);
 
   const studentItems = [
@@ -45,8 +40,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'learn', label: 'Learn', icon: Compass },
     { id: 'assess', label: 'Assess', icon: CheckSquare },
     { id: 'twin', label: 'My Twin', icon: Layers },
-    { id: 'progress', label: 'Progress', icon: TrendingUp },
-    { id: 'groups', label: 'Study Groups', icon: Users }
+    { id: 'revision', label: 'Revision Engine', icon: RotateCcw },
+    { id: 'progress', label: 'Progress', icon: TrendingUp }
   ];
 
   const teacherItems = [
@@ -60,7 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <aside className={`app-sidebar ${user.role === 'teacher' ? 'teacher-sidebar' : activeTab === 'home' ? 'student-home-sidebar' : activeTab === 'learn' ? 'student-learn-sidebar' : activeTab === 'assess' ? 'student-assess-sidebar' : activeTab === 'twin' ? 'student-twin-sidebar' : activeTab === 'progress' ? 'student-progress-sidebar' : activeTab === 'groups' ? 'student-groups-sidebar' : ''}`} style={{
+      <aside className={`app-sidebar ${user.role === 'teacher' ? 'teacher-sidebar' : activeTab === 'home' ? 'student-home-sidebar' : activeTab === 'learn' ? 'student-learn-sidebar' : activeTab === 'assess' ? 'student-assess-sidebar' : activeTab === 'twin' ? 'student-twin-sidebar' : activeTab === 'revision' ? 'student-revision-sidebar' : activeTab === 'progress' ? 'student-progress-sidebar' : ''}`} style={{
         width: '240px',
         flexShrink: 0,
         background: '#000000',
@@ -130,90 +125,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
               >
                 <Icon size={19} color={isActive ? '#FFFFFF' : '#727082'} />
-                <span>{item.label}</span>
+                <span style={{ flex: 1, color: isActive ? '#FFFFFF' : 'inherit', fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
+                {item.id === 'revision' && (
+                  <span style={{
+                    fontSize: '0.64rem',
+                    fontWeight: 800,
+                    padding: '2px 7px',
+                    borderRadius: '8px',
+                    background: isActive ? '#FFFFFF' : 'rgba(245, 158, 11, 0.15)',
+                    color: isActive ? '#10212d' : '#FBBF24',
+                    border: isActive ? 'none' : '1px solid rgba(245, 158, 11, 0.35)',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase'
+                  }}>
+                    Due
+                  </span>
+                )}
               </button>
             );
           })}
         </nav>
 
-        {/* Bottom Section: Settings, Help, Account */}
+        {/* Bottom Section: Account */}
         <div className="app-sidebar-footer" style={{ padding: '14px 12px', borderTop: '1px solid rgba(255, 255, 255, 0.06)', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {onGoToLanding && (
-            <button
-              onClick={onGoToLanding}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                width: '100%',
-                padding: '9px 14px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'transparent',
-                color: '#71707d',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                textAlign: 'left',
-                transition: 'color 0.15s ease'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-              onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
-            >
-              <Globe size={16} color="#71707d" />
-              <span>Landing Page</span>
-            </button>
-          )}
-
-          <button
-            onClick={() => setShowSettingsModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '9px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#71707d',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
-          >
-            <Settings size={16} color="#71707d" />
-            <span>Settings</span>
-          </button>
-
-          <button
-            onClick={() => setShowHelpModal(true)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              width: '100%',
-              padding: '9px 14px',
-              borderRadius: '8px',
-              border: 'none',
-              background: 'transparent',
-              color: '#71707d',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-              textAlign: 'left',
-              transition: 'color 0.15s ease'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#71707d'}
-          >
-            <HelpCircle size={16} color="#71707d" />
-            <span>Help</span>
-          </button>
 
           {/* Account Profile Item */}
           <button
@@ -331,138 +265,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }}
           onSwitchAccount={onSwitchAccount}
         />
-      )}
-
-      {/* Settings Modal (Dark Stitch Theme) */}
-      {showSettingsModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div className="card-panel" style={{ width: '100%', maxWidth: '440px', padding: '28px', position: 'relative' }}>
-            <button
-              onClick={() => setShowSettingsModal(false)}
-              style={{ position: 'absolute', top: '18px', right: '18px', background: 'none', border: 'none', cursor: 'pointer', color: '#9496a8' }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginBottom: '18px' }}>
-              Platform Settings
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', fontSize: '0.88rem' }}>
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Display Name
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#FFFFFF' }}>
-                  {user.display_name}
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Assigned Role
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#FFFFFF', textTransform: 'capitalize' }}>
-                  {user.role}
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontWeight: 700, color: '#cdc2d7', marginBottom: '6px' }}>
-                  Learner User ID (UUID)
-                </label>
-                <div style={{ padding: '10px 14px', background: '#121216', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)', color: '#9496a8', fontSize: '0.78rem', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                  {user.user_id}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button
-                onClick={() => setShowSettingsModal(false)}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.85rem' }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Help Modal (Dark Stitch Theme) */}
-      {showHelpModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 100,
-          padding: '20px'
-        }}>
-          <div className="card-panel" style={{ width: '100%', maxWidth: '520px', padding: '28px', position: 'relative' }}>
-            <button
-              onClick={() => setShowHelpModal(false)}
-              style={{ position: 'absolute', top: '18px', right: '18px', background: 'none', border: 'none', cursor: 'pointer', color: '#9496a8' }}
-            >
-              <X size={20} />
-            </button>
-
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#FFFFFF', marginBottom: '8px' }}>
-              Knowledge Twin Help & Guidance
-            </h3>
-
-            <p style={{ fontSize: '0.88rem', color: '#9496a8', marginBottom: '20px', lineHeight: 1.5 }}>
-              Knowledge Twin builds an adaptive model of what you know and diagnoses why learning breaks down.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem' }}>
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>1. Learn & Explore:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Browse any subject, view curriculum skills, or upload your own notes/documents.
-                </p>
-              </div>
-
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>2. Diagnostic Assessments:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Each question diagnoses specific mistake patterns and prerequisite gaps rather than just scoring right/wrong.
-                </p>
-              </div>
-
-              <div style={{ padding: '14px', background: '#121216', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
-                <strong style={{ color: '#d7baff' }}>3. Living Twin & Targeted Retests:</strong>
-                <p style={{ color: '#cdc2d7', margin: '4px 0 0 0' }}>
-                  Inspect your mastery graph and resolve identified gaps through targeted micro-interventions.
-                </p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button
-                onClick={() => setShowHelpModal(false)}
-                className="btn btn-primary"
-                style={{ fontSize: '0.85rem' }}
-              >
-                Got it
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </>
   );

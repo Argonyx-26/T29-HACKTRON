@@ -13,8 +13,8 @@ import { KnowledgeTwinView } from './components/twin/KnowledgeTwinView';
 import { AssessmentView } from './components/assessment/AssessmentView';
 import { ProgressView } from './components/student/ProgressView';
 import { InterventionView } from './components/intervention/InterventionView';
+import { RevisionEngineView } from './components/student/RevisionEngineView';
 import { DocumentUploadModal } from './components/upload/DocumentUploadModal';
-import { StudyGroupsView } from './components/groups/StudyGroupsView';
 import { TeacherDashboard } from './components/teacher/TeacherDashboard';
 import { ContentManager } from './components/admin/ContentManager';
 
@@ -28,19 +28,41 @@ export const App: React.FC = () => {
   const [role, setRole] = useState<'landing' | 'login' | 'student' | 'teacher' | 'admin'>(() => {
     const params = new URLSearchParams(window.location.search);
     const paramRole = params.get('role');
-    if (paramRole === 'teacher' || paramRole === 'admin' || paramRole === 'student' || paramRole === 'login') {
-      return paramRole;
+    if (paramRole === 'teacher' || paramRole === 'admin' || paramRole === 'student' || paramRole === 'login' || paramRole === 'landing') {
+      return paramRole as any;
+    }
+    const savedRole = localStorage.getItem('kt_active_role');
+    if (savedRole === 'teacher' || savedRole === 'admin' || savedRole === 'student' || savedRole === 'login' || savedRole === 'landing') {
+      return savedRole as any;
+    }
+    const user = learningRepository.getCurrentUser();
+    if (user?.role) {
+      return user.role as any;
     }
     // Default to 'landing' so Landing Page comes first before login!
     return 'landing';
   });
 
-  // Student Navigation: 'home' | 'learn' | 'assess' | 'twin' | 'progress' | 'groups' | 'upload' | 'intervention'
-  const [studentTab, setStudentTab] = useState<'home' | 'learn' | 'assess' | 'twin' | 'progress' | 'groups' | 'upload' | 'intervention'>('home');
+  // Student Navigation: 'home' | 'learn' | 'assess' | 'twin' | 'revision' | 'progress' | 'upload' | 'intervention'
+  const [studentTab, setStudentTab] = useState<'home' | 'learn' | 'assess' | 'twin' | 'revision' | 'progress' | 'upload' | 'intervention'>(() => {
+    const savedTab = localStorage.getItem('kt_student_tab');
+    const valid = ['home', 'learn', 'assess', 'twin', 'revision', 'progress', 'upload', 'intervention'];
+    if (savedTab && valid.includes(savedTab)) {
+      return savedTab as any;
+    }
+    return 'home';
+  });
   const [learnSearchQuery, setLearnSearchQuery] = useState('');
 
   // Teacher Navigation: overview, students, insights, and content.
-  const [teacherTab, setTeacherTab] = useState<'overview' | 'students' | 'insights' | 'content'>('overview');
+  const [teacherTab, setTeacherTab] = useState<'overview' | 'students' | 'insights' | 'content'>(() => {
+    const savedTab = localStorage.getItem('kt_teacher_tab');
+    const valid = ['overview', 'students', 'insights', 'content'];
+    if (savedTab && valid.includes(savedTab)) {
+      return savedTab as any;
+    }
+    return 'overview';
+  });
 
   // Active Chapter being learned / assessed - starts null for new learner
   const [activeChapter, setActiveChapter] = useState<Chapter | null>(null);
@@ -54,11 +76,44 @@ export const App: React.FC = () => {
     skillId: string;
     patternId?: string;
     classification?: string;
-  }>({
-    skillId: 'sk_dist_04',
-    patternId: 'PAT_DIST_PARTIAL',
-    classification: 'procedural'
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('kt_intervention_target');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      skillId: 'sk_dist_04',
+      patternId: 'PAT_DIST_PARTIAL',
+      classification: 'procedural'
+    };
   });
+
+  // Persist navigation states across reloads / page refreshes
+  useEffect(() => {
+    localStorage.setItem('kt_active_role', role);
+  }, [role]);
+
+  useEffect(() => {
+    localStorage.setItem('kt_student_tab', studentTab);
+  }, [studentTab]);
+
+  useEffect(() => {
+    localStorage.setItem('kt_teacher_tab', teacherTab);
+  }, [teacherTab]);
+
+  useEffect(() => {
+    if (activeChapter?.id) {
+      localStorage.setItem('kt_active_chapter_id', activeChapter.id);
+    } else if (activeChapter === null) {
+      localStorage.removeItem('kt_active_chapter_id');
+    }
+  }, [activeChapter]);
+
+  useEffect(() => {
+    if (interventionTarget) {
+      localStorage.setItem('kt_intervention_target', JSON.stringify(interventionTarget));
+    }
+  }, [interventionTarget]);
 
   useEffect(() => {
     // Check URL parameters for direct role specification
@@ -67,12 +122,10 @@ export const App: React.FC = () => {
 
     if (paramRole === 'teacher') {
       setRole('teacher');
-      setTeacherTab('overview');
     } else if (paramRole === 'admin') {
       setRole('admin');
     } else if (paramRole === 'student') {
       setRole('student');
-      setStudentTab('home');
     }
 
     loadInitialData();
@@ -86,7 +139,14 @@ export const App: React.FC = () => {
 
   const loadInitialData = async () => {
     try {
-      await apiClient.getChapters();
+      const chaps = await apiClient.getChapters();
+      const savedChapterId = localStorage.getItem('kt_active_chapter_id');
+      if (savedChapterId && chaps && chaps.length) {
+        const found = chaps.find(c => c.id === savedChapterId || c.source_document_id === savedChapterId);
+        if (found) {
+          setActiveChapter(found);
+        }
+      }
     } catch (e) {
       console.error(e);
     }
@@ -105,27 +165,41 @@ export const App: React.FC = () => {
   };
 
   const handleStartIntervention = (skillId: string, patternId: string, classification: string) => {
-    setInterventionTarget({ skillId, patternId, classification });
+    const nextTarget = { skillId, patternId, classification };
+    setInterventionTarget(nextTarget);
+    localStorage.setItem('kt_intervention_target', JSON.stringify(nextTarget));
     setStudentTab('intervention');
   };
 
   const handleSelectChapterFromLearn = (chapter: Chapter) => {
     setActiveChapter(chapter);
+    localStorage.setItem('kt_active_chapter_id', chapter.id);
     setStudentTab('assess');
   };
 
   const handleUserLogin = (user: User) => {
     setCurrentUser(user);
     setRole(user.role);
+    localStorage.setItem('kt_active_role', user.role);
     if (user.role === 'student') {
       setStudentTab('home');
+      localStorage.setItem('kt_student_tab', 'home');
       setActiveChapter(null);
+      localStorage.removeItem('kt_active_chapter_id');
     } else if (user.role === 'teacher') {
       setTeacherTab('overview');
+      localStorage.setItem('kt_teacher_tab', 'overview');
     }
   };
 
   const handleSwitchAccount = () => {
+    learningRepository.clearCurrentUser();
+    localStorage.removeItem('kt_active_role');
+    localStorage.removeItem('kt_student_tab');
+    localStorage.removeItem('kt_teacher_tab');
+    localStorage.removeItem('kt_active_chapter_id');
+    localStorage.removeItem('kt_intervention_target');
+    setCurrentUser(null);
     setTwinData(null);
     setActiveChapter(null);
     setRole('landing');
@@ -174,7 +248,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className={`app-shell ${role === 'student' && studentTab === 'home' ? 'student-home-shell' : role === 'student' && studentTab === 'learn' ? 'student-learn-shell' : studentTab === 'assess' ? 'student-assess-shell' : studentTab === 'twin' ? 'student-twin-shell' : studentTab === 'progress' ? 'student-progress-shell' : role === 'student' && studentTab === 'groups' ? 'student-groups-shell' : ''}`} style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-primary)' }}>
+    <div className={`app-shell ${role === 'student' && studentTab === 'home' ? 'student-home-shell' : role === 'student' && studentTab === 'learn' ? 'student-learn-shell' : studentTab === 'assess' ? 'student-assess-shell' : studentTab === 'twin' ? 'student-twin-shell' : studentTab === 'progress' ? 'student-progress-shell' : studentTab === 'revision' ? 'student-revision-shell' : ''}`} style={{ minHeight: '100vh', display: 'flex', background: 'var(--bg-primary)' }}>
       {/* Persistent Left Navigation Sidebar */}
       <Sidebar
         user={currentUser}
@@ -186,8 +260,8 @@ export const App: React.FC = () => {
       />
 
       {/* Main Workspace Column */}
-      <div className={`app-workspace ${role === 'student' && studentTab === 'home' ? 'student-home-workspace' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
-        <main className={`app-main ${role === 'student' && studentTab === 'home' ? 'student-home-main' : role === 'student' && studentTab === 'learn' ? 'student-learn-main' : studentTab === 'assess' ? 'student-assess-main' : studentTab === 'twin' ? 'student-twin-main' : studentTab === 'progress' ? 'student-progress-main' : role === 'student' && studentTab === 'groups' ? 'student-groups-main' : ''}`} style={{ maxWidth: '1440px', width: '100%', margin: '28px auto', padding: '0 32px', flex: 1, boxSizing: 'border-box' }}>
+      <div className={`app-workspace ${role === 'student' && (studentTab === 'home' || studentTab === 'revision') ? (studentTab === 'home' ? 'student-home-workspace' : 'student-revision-workspace') : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflowY: 'auto' }}>
+        <main className={`app-main ${role === 'student' && studentTab === 'home' ? 'student-home-main' : role === 'student' && studentTab === 'learn' ? 'student-learn-main' : studentTab === 'assess' ? 'student-assess-main' : studentTab === 'twin' ? 'student-twin-main' : studentTab === 'progress' ? 'student-progress-main' : studentTab === 'revision' ? 'student-revision-main' : ''}`} style={{ maxWidth: '1440px', width: '100%', margin: '28px auto', padding: '0 32px', flex: 1, boxSizing: 'border-box' }}>
           {/* STUDENT FLOW */}
           {role === 'student' && (
             <>
@@ -208,6 +282,7 @@ export const App: React.FC = () => {
                 <LearnView
                   onSelectChapter={handleSelectChapterFromLearn}
                   onNavigateToUpload={() => setStudentTab('upload')}
+                  onNavigateToHome={() => setStudentTab('home')}
                   initialSearchQuery={learnSearchQuery}
                 />
               )}
@@ -219,6 +294,7 @@ export const App: React.FC = () => {
                   onAttemptCompleted={() => loadStudentTwin(currentUser.user_id, activeChapter?.id)}
                   onNavigateToIntervention={handleStartIntervention}
                   onNavigateToLearn={() => setStudentTab('learn')}
+                  onNavigateToHome={() => setStudentTab('home')}
                 />
               )}
 
@@ -228,6 +304,16 @@ export const App: React.FC = () => {
                   onNavigateToDiagnostic={() => setStudentTab('assess')}
                   onNavigateToUpload={() => setStudentTab('upload')}
                   onStartIntervention={handleStartIntervention}
+                  onNavigateToHome={() => setStudentTab('home')}
+                />
+              )}
+
+              {studentTab === 'revision' && (
+                <RevisionEngineView
+                  studentId={currentUser.user_id}
+                  onNavigateToTwin={() => setStudentTab('twin')}
+                  onNavigateToAssess={() => setStudentTab('assess')}
+                  onNavigateToHome={() => setStudentTab('home')}
                 />
               )}
 
@@ -236,16 +322,7 @@ export const App: React.FC = () => {
                   userId={currentUser.user_id}
                   onNavigateToAssess={() => setStudentTab('assess')}
                   onNavigateToLearn={() => setStudentTab('learn')}
-                />
-              )}
-
-              {studentTab === 'groups' && (
-                <StudyGroupsView
-                  role="student"
-                  userId={currentUser.user_id}
-                  userName={currentUser.display_name}
-                  onNavigateToLearn={() => setStudentTab('learn')}
-                  onNavigateToAssess={() => setStudentTab('assess')}
+                  onNavigateToHome={() => setStudentTab('home')}
                 />
               )}
 
@@ -257,6 +334,7 @@ export const App: React.FC = () => {
                   classification={interventionTarget.classification}
                   onRetestCompleted={() => loadStudentTwin(currentUser.user_id, activeChapter?.id)}
                   onNavigateToTwin={() => setStudentTab('twin')}
+                  onNavigateToHome={() => setStudentTab('home')}
                 />
               )}
 
@@ -266,8 +344,15 @@ export const App: React.FC = () => {
                   onChapterReady={async (newChapterId) => {
                     await loadInitialData();
                     const chaps = await apiClient.getChapters();
-                    const matched = chaps.find(c => c.id === newChapterId);
-                    if (matched) setActiveChapter(matched);
+                    const matched = chaps.find(c => c.id === newChapterId || c.source_document_id === newChapterId);
+                    if (matched) {
+                      setActiveChapter(matched);
+                    } else if (newChapterId) {
+                      try {
+                        const direct = await apiClient.getChapterDetail(newChapterId);
+                        if (direct) setActiveChapter(direct);
+                      } catch {}
+                    }
                     setStudentTab('assess');
                   }}
                 />

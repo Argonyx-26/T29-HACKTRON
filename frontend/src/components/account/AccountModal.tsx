@@ -23,7 +23,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     e.preventDefault();
     if (!displayName.trim()) return;
 
-    const updated = learningRepository.saveUser(displayName.trim(), user.role);
+    const updated = learningRepository.updateUser(user.user_id, displayName.trim());
     onUpdateUser(updated);
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2000);
@@ -171,10 +171,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </button>
 
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" onClick={onClose} className="btn btn-secondary" style={{ fontSize: '0.82rem' }}>
+              <button type="button" onClick={onClose} className="btn btn-secondary">
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary purple-glow-btn" style={{ fontSize: '0.82rem' }}>
+              <button type="submit" className="btn btn-primary">
                 Save Changes
               </button>
             </div>

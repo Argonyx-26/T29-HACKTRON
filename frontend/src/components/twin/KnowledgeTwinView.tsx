@@ -1,20 +1,23 @@
 import React, { useMemo, useState } from 'react';
 import {
-  ArrowRight, Bell, BookOpen, Brain, ChartNoAxesCombined, CheckCircle2,
-  FileText, Lightbulb, Search, Sparkles, Target, TrendingUp, Sprout
+  ArrowLeft, ArrowRight, Bell, BookOpen, Brain, ChartNoAxesCombined, CheckCircle2,
+  FileText, Lightbulb, Search, Sparkles, Target, TrendingUp, Sprout,
+  AlertTriangle, Activity
 } from 'lucide-react';
 import { KnowledgeTwinView as KnowledgeTwinType } from '../../types';
+import { MistakeCardList } from './MistakeCardList';
 
 interface KnowledgeTwinViewProps {
   twin: KnowledgeTwinType | null;
   onNavigateToDiagnostic: () => void;
   onNavigateToUpload: () => void;
   onStartIntervention: (skillId: string, patternId: string, classification: string) => void;
+  onNavigateToHome?: () => void;
 }
 
-type TwinSection = 'Overview' | 'Learning Style' | 'Focus Areas' | 'Growth Insights';
+type TwinSection = 'Overview' | 'Mistakes & Patterns' | 'Learning Style' | 'Focus Areas' | 'Growth Insights';
 
-export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNavigateToDiagnostic, onNavigateToUpload, onStartIntervention }) => {
+export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNavigateToDiagnostic, onNavigateToUpload, onStartIntervention, onNavigateToHome }) => {
   const [activeSection, setActiveSection] = useState<TwinSection>('Overview');
   const [searchQuery, setSearchQuery] = useState('');
   const skills = twin?.skills ?? [];
@@ -47,6 +50,11 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
   }) : <p className="student-twin-empty-copy">{emptyText}</p>;
 
   return <div className="student-twin-page">
+    {onNavigateToHome && (
+      <button type="button" className="page-back-button" onClick={onNavigateToHome}>
+        <ArrowLeft size={15} /> Back to Dashboard
+      </button>
+    )}
     <div className="student-twin-topbar">
       <label><Search size={18} /><input aria-label="Search your learning evidence" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Search your skills, learning evidence, or focus areas..." /></label>
       <button aria-label="Notifications"><Bell size={19} /><i /></button>
@@ -58,8 +66,119 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
     </header>
 
     <nav className="student-twin-tabs" aria-label="Knowledge Twin sections">
-      {(['Overview', 'Learning Style', 'Focus Areas', 'Growth Insights'] as TwinSection[]).map(section => <button key={section} className={activeSection === section ? 'active' : ''} onClick={() => setActiveSection(section)}>{section}</button>)}
+      {(['Overview', 'Mistakes & Patterns', 'Learning Style', 'Focus Areas', 'Growth Insights'] as TwinSection[]).map(section => (
+        <button
+          key={section}
+          className={activeSection === section ? 'active' : ''}
+          onClick={() => setActiveSection(section)}
+        >
+          {section}
+          {section === 'Mistakes & Patterns' && (twin?.active_misconceptions?.length ?? 0) > 0 && (
+            <small style={{ marginLeft: '6px', background: '#f59e0b', color: '#000', padding: '1px 6px', borderRadius: '10px', fontWeight: 800, fontSize: '0.7rem' }}>
+              {twin?.active_misconceptions?.length}
+            </small>
+          )}
+        </button>
+      ))}
     </nav>
+
+    {/* MISTAKES & PATTERNS FIRST-CLASS SECTION */}
+    {activeSection === 'Mistakes & Patterns' && (
+      <section className="student-twin-section" style={{ marginTop: '20px', padding: '24px' }}>
+        <MistakeCardList
+          activeMisconceptions={twin?.active_misconceptions || []}
+          resolvedMisconceptions={twin?.resolved_misconceptions || []}
+          onStartIntervention={onStartIntervention}
+        />
+      </section>
+    )}
+
+    {/* LIVING MISTAKE BANK PREVIEW ON OVERVIEW */}
+    {activeSection === 'Overview' && (twin?.active_misconceptions?.length ?? 0) > 0 && (
+      <section
+        style={{
+          marginTop: '20px',
+          border: '1px solid #CBD5E1',
+          borderLeft: '5px solid #D97706',
+          background: '#FFFFFF',
+          borderRadius: '12px',
+          padding: '24px',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={22} color="#D97706" />
+              Living Mistake Bank ({twin?.active_misconceptions.length} Active Gaps Stored)
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: '#475569', marginTop: '2px' }}>
+              Specific reasoning errors from your assessments are stored and tracked here until resolved.
+            </p>
+          </div>
+          <button
+            className="btn btn-secondary"
+            onClick={() => setActiveSection('Mistakes & Patterns')}
+            style={{ fontSize: '0.82rem', padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#F1F5F9', color: '#0F172A', border: '1px solid #CBD5E1', borderRadius: '6px' }}
+          >
+            <span>View Complete Mistake Bank</span>
+            <ArrowRight size={13} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '14px' }}>
+          {twin?.active_misconceptions.slice(0, 4).map((item) => (
+            <div
+              key={item.id}
+              style={{
+                padding: '16px',
+                borderRadius: '10px',
+                background: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 7px', borderRadius: '4px', background: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}>{item.classification} gap</span>
+                  <small style={{ color: '#64748B', fontSize: '0.75rem', fontWeight: 600 }}>detected {item.occurrences}x</small>
+                </div>
+                <strong style={{ fontSize: '1rem', color: '#0F172A', display: 'block', fontWeight: 800 }}>{item.pattern_name}</strong>
+                <small style={{ color: '#475569', fontSize: '0.8rem', display: 'block', marginTop: '2px' }}>Skill: <span style={{ color: '#0F172A', fontWeight: 600 }}>{item.skill_name}</span></small>
+                {item.why_it_is_wrong && (
+                  <div style={{ marginTop: '8px', padding: '8px 10px', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', borderRadius: '6px', fontSize: '0.82rem', color: '#991B1B', fontWeight: 600 }}>
+                    {item.why_it_is_wrong}
+                  </div>
+                )}
+              </div>
+              <button
+                className="btn btn-primary"
+                onClick={() => onStartIntervention(item.skill_id || item.skill_code, item.pattern_id, item.classification)}
+                style={{
+                  padding: '7px 12px',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  borderRadius: '6px',
+                  color: '#FFFFFF',
+                  background: '#1E293B',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>Fix in Targeted Intervention</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
 
     <div className="student-twin-top-grid">
       {showSection('Learning Style') && <section className="student-twin-profile">
@@ -98,7 +217,7 @@ export const KnowledgeTwinView: React.FC<KnowledgeTwinViewProps> = ({ twin, onNa
 
     {activeSection === 'Overview' && !responseCount && <div className="student-twin-zero-cta"><div><strong>Your learning profile is just getting started.</strong><span>Take a quick diagnostic or add your own learning material to build your Twin.</span></div><button onClick={onNavigateToDiagnostic}>Take a Diagnostic <ArrowRight size={15} /></button><button className="secondary" onClick={onNavigateToUpload}>Add Material</button></div>}
 
-    {activeSection === 'Growth Insights' && twin?.active_misconceptions.length ? <section className="student-twin-section student-twin-misconceptions"><h2>Patterns to work through</h2><p>Your Twin noticed these learning patterns during recent practice.</p>{twin.active_misconceptions.slice(0, 3).map(item => <article key={item.id}><div><strong>{item.pattern_name}</strong><small>{item.skill_name} · observed {item.occurrences} {item.occurrences === 1 ? 'time' : 'times'}</small></div><button onClick={() => onStartIntervention(item.skill_code, item.pattern_id, item.classification)}>Practice this <ArrowRight size={14} /></button></article>)}</section> : null}
+    {activeSection === 'Growth Insights' && twin?.active_misconceptions.length ? <section className="student-twin-section student-twin-misconceptions"><h2>Patterns to work through</h2><p>Your Twin noticed these learning patterns during recent practice.</p>{twin.active_misconceptions.slice(0, 3).map(item => <article key={item.id}><div><strong>{item.pattern_name}</strong><small>{item.skill_name} · observed {item.occurrences} {item.occurrences === 1 ? 'time' : 'times'}</small></div><button onClick={() => onStartIntervention(item.skill_id || item.skill_code, item.pattern_id, item.classification)}>Practice this <ArrowRight size={14} /></button></article>)}</section> : null}
   </div>;
 };
 

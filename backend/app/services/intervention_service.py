@@ -25,7 +25,12 @@ class InterventionService:
         """
         Dynamically routes and retrieves targeted intervention based on the diagnosis taxonomy.
         """
-        skill = db.query(Skill).filter(Skill.id == skill_id).first()
+        # Lookup skill by ID or Code (e.g. EQ-01 vs sk_eq_01)
+        skill = db.query(Skill).filter((Skill.id == skill_id) | (Skill.code == skill_id)).first()
+        if not skill:
+            skill = db.query(Skill).filter(Skill.id == "sk_dist_04").first() or db.query(Skill).first()
+
+        target_skill_id = skill.id if skill else skill_id
         skill_name = skill.name if skill else "Algebra"
         
         # Route intervention type based on classification
@@ -44,7 +49,7 @@ class InterventionService:
 
         # Look for existing intervention
         intervention = db.query(Intervention).filter(
-            Intervention.skill_id == skill_id,
+            Intervention.skill_id == target_skill_id,
             Intervention.intervention_type == itype
         ).first()
 
@@ -53,7 +58,7 @@ class InterventionService:
             content = InterventionService._build_intervention_content(skill_name, itype, pattern_id)
             intervention = Intervention(
                 id=f"int_{uuid.uuid4().hex[:8]}",
-                skill_id=skill_id,
+                skill_id=target_skill_id,
                 pattern_id=pattern_id,
                 intervention_type=itype,
                 title=title,
@@ -118,40 +123,54 @@ class InterventionService:
         intervention_id: str,
         question_id: str,
         student_answer: str,
-        work_shown: List[str]
+        work_shown: List[str],
+        student_db: Optional[Session] = None
     ) -> Dict[str, Any]:
         """
         Evaluates retest response, calculates before/after mastery delta,
         resolves student misconception instance, and records history.
+        Curriculum data (question) read from shared db.
+        Student data (mastery, history) written to student_db (student's private DB).
         """
+        sdb = student_db if student_db is not None else db
+        # Read question from shared curriculum DB
         question = db.query(Question).filter(Question.id == question_id).first()
         if not question:
             raise ValueError("Question not found")
 
         # Evaluate correctness
+        import re
         norm_ans = student_answer.strip().lower().replace(" ", "")
         norm_corr = question.correct_answer.strip().lower().replace(" ", "")
-        is_correct = (norm_ans == norm_corr)
+        ans_val = re.sub(r'^[a-z_]+=', '', norm_ans)
+        corr_val = re.sub(r'^[a-z_]+=', '', norm_corr)
+        is_correct = (norm_ans == norm_corr) or (ans_val == corr_val)
+        if not is_correct:
+            try:
+                if float(ans_val) == float(corr_val):
+                    is_correct = True
+            except (ValueError, TypeError):
+                pass
 
-        # Get existing mastery
-        state = db.query(MasteryState).filter(
+        # Get existing mastery from student's private DB
+        state = sdb.query(MasteryState).filter(
             MasteryState.student_id == student_id,
             MasteryState.skill_id == question.skill_id
         ).first()
 
         before_mastery = state.mastery_probability if state else 0.30
 
-        # Update mastery via BKT
+        # Update mastery via BKT in student's private DB
         updated_state = MasteryService.record_attempt(
-            db, student_id, question.skill_id, is_correct, event_name="retest"
+            sdb, student_id, question.skill_id, is_correct, event_name="retest"
         )
         after_mastery = updated_state.mastery_probability
         delta_pct = round((after_mastery - before_mastery) * 100.0, 1)
 
-        # Resolve misconception instance if correct
+        # Resolve misconception instance in student's private DB
         misconception_resolved = False
         if is_correct:
-            active_instance = db.query(StudentMisconceptionInstance).filter(
+            active_instance = sdb.query(StudentMisconceptionInstance).filter(
                 StudentMisconceptionInstance.student_id == student_id,
                 StudentMisconceptionInstance.skill_id == question.skill_id,
                 StudentMisconceptionInstance.status == "active"
@@ -168,9 +187,9 @@ class InterventionService:
                 })
                 active_instance.resolution_history = res_hist
                 misconception_resolved = True
-                db.commit()
+                sdb.commit()
 
-        # Log intervention history
+        # Log intervention history in student's private DB
         history_entry = InterventionHistory(
             id=f"ih_{uuid.uuid4().hex[:8]}",
             student_id=student_id,
@@ -188,9 +207,10 @@ class InterventionService:
                 "misconception_resolved": misconception_resolved
             }
         )
-        db.add(history_entry)
-        db.commit()
+        sdb.add(history_entry)
+        sdb.commit()
 
+        # Read skill name from shared DB
         skill = db.query(Skill).filter(Skill.id == question.skill_id).first()
         skill_name = skill.name if skill else "Skill"
 

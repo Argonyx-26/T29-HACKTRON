@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.seed.seed_data import init_db, seed_database
-from app.api import chapters, subjects, assessments, twin, interventions, documents, teacher, admin, groups
+from app.api import chapters, subjects, assessments, twin, interventions, documents, teacher, admin, groups, revision
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,12 +35,14 @@ app.add_middleware(
 app.include_router(subjects.router, prefix="/api")
 app.include_router(chapters.router, prefix="/api")
 app.include_router(assessments.router, prefix="/api")
+app.include_router(assessments.reports_router, prefix="/api")
 app.include_router(twin.router, prefix="/api")
 app.include_router(interventions.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(teacher.router, prefix="/api")
 app.include_router(admin.router, prefix="/api")
 app.include_router(groups.router, prefix="/api")
+app.include_router(revision.router, prefix="/api")
 
 @app.get("/")
 def root():

@@ -7,7 +7,10 @@ import {
   Question,
   DiagnosisResult,
   RetestResult,
-  TeacherOverview
+  TeacherOverview,
+  AssessmentReport,
+  RevisionOverview,
+  RevisionPracticeResult
 } from '../types';
 
 const API_BASE = '/api';
@@ -105,6 +108,29 @@ export const apiClient = {
     return res.json();
   },
 
+  // Assessment Test Paper Reports
+  async saveAssessmentReport(report: Partial<AssessmentReport>): Promise<AssessmentReport> {
+    const res = await fetch(`${API_BASE}/assessments/reports`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(report)
+    });
+    if (!res.ok) throw new Error('Failed to save assessment report');
+    return res.json();
+  },
+
+  async getAssessmentReports(studentId: string): Promise<AssessmentReport[]> {
+    const res = await fetch(`${API_BASE}/assessments/reports?student_id=${studentId}`);
+    if (!res.ok) throw new Error('Failed to fetch assessment reports');
+    return res.json();
+  },
+
+  async getAssessmentReportDetail(reportId: string): Promise<AssessmentReport> {
+    const res = await fetch(`${API_BASE}/assessments/reports/${reportId}`);
+    if (!res.ok) throw new Error('Failed to fetch assessment report detail');
+    return res.json();
+  },
+
   // Interventions & Retest
   async routeIntervention(params: {
     student_id: string;
@@ -163,7 +189,7 @@ export const apiClient = {
     return res.json();
   },
 
-  async parseDocument(id: string): Promise<{ document_id: string; title: string; status: string; extracted_length: number; extracted_outline: Array<{ number: number; title: string; topics: string[] }> }> {
+  async parseDocument(id: string): Promise<{ document_id: string; chapter_id?: string; title: string; subject?: string; status: string; skills_count?: number; questions_count?: number; extracted_length: number; extracted_outline: Array<{ number: number; title: string; topics: string[] }> }> {
     const res = await fetch(`${API_BASE}/documents/${id}/parse`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to process document');
     return res.json();
@@ -210,6 +236,26 @@ export const apiClient = {
   async getAdminLogs(): Promise<{ audit_logs: any[]; llm_request_logs: any[] }> {
     const res = await fetch(`${API_BASE}/admin/logs`);
     if (!res.ok) throw new Error('Failed to fetch system logs');
+    return res.json();
+  },
+
+  // Continuous Knowledge Twin - Revision Engine
+  async getRevisionOverview(studentId: string): Promise<RevisionOverview> {
+    const res = await fetch(`${API_BASE}/revision/${studentId}`);
+    if (!res.ok) throw new Error('Failed to fetch revision overview');
+    return res.json();
+  },
+
+  async submitRetrievalPractice(payload: {
+    student_id: string;
+    answers: Array<{ question_id: string; answer: string }>;
+  }): Promise<RevisionPracticeResult> {
+    const res = await fetch(`${API_BASE}/revision/practice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('Failed to submit retrieval practice');
     return res.json();
   },
 

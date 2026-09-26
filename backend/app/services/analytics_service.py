@@ -17,38 +17,51 @@ from app.services.mastery_service import MasteryService
 
 class AnalyticsService:
     @staticmethod
-    def get_student_knowledge_twin(db: Session, student_id: str, chapter_id: Optional[str] = None) -> Dict[str, Any]:
+    def get_student_knowledge_twin(db: Session, student_id: str, chapter_id: Optional[str] = None, student_db: Optional[Session] = None) -> Dict[str, Any]:
         """
         Builds the complete living Knowledge Twin 2.0 state for a student across any subject/chapter.
         Database is the single authoritative source of truth.
         """
-        student = db.query(Student).filter(Student.id == student_id).first()
+        # sdb = student's private DB if provided, else fallback to shared db
+        sdb = student_db if student_db is not None else db
+        student = sdb.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            # Try shared db as fallback
+            student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             try:
                 student = Student(id=student_id, name="Learner", avatar_color="#2563EB", target_mastery=0.85)
-                db.add(student)
-                db.commit()
-                db.refresh(student)
+                sdb.add(student)
+                sdb.commit()
+                sdb.refresh(student)
             except IntegrityError:
-                db.rollback()
-                student = db.query(Student).filter(Student.id == student_id).first()
+                sdb.rollback()
+                student = sdb.query(Student).filter(Student.id == student_id).first()
 
         target_mastery = student.target_mastery if (student and student.target_mastery) else 0.85
 
-        # Dynamically determine relevant chapter: explicitly passed, or learner's recent attempt, or first active
+        # Dynamically determine relevant chapter: explicitly passed, or learner's recent attempt, or mastery
         if chapter_id:
             chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
         else:
-            recent_attempt = db.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).first()
-            if recent_attempt and recent_attempt.question:
-                chapter = recent_attempt.question.chapter
+            recent_attempt = sdb.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).first()
+            if recent_attempt:
+                # Look up chapter from shared DB using question_id
+                from app.models.all_models import Question
+                q_obj = db.query(Question).filter(Question.id == recent_attempt.question_id).first()
+                chapter = db.query(Chapter).filter(Chapter.id == q_obj.chapter_id).first() if q_obj else None
             else:
-                chapter = db.query(Chapter).filter(Chapter.status == "active").first()
+                recent_mastery = sdb.query(MasteryState).filter(MasteryState.student_id == student_id).order_by(MasteryState.last_updated.desc()).first()
+                if recent_mastery:
+                    sk_obj = db.query(Skill).filter(Skill.id == recent_mastery.skill_id).first()
+                    chapter = db.query(Chapter).filter(Chapter.id == sk_obj.chapter_id).first() if sk_obj else None
+                else:
+                    chapter = None
 
         skills = db.query(Skill).filter(Skill.chapter_id == chapter.id).order_by(Skill.order).all() if chapter else []
         
-        # Batch query all mastery states for this student
-        all_masteries = db.query(MasteryState).filter(MasteryState.student_id == student_id).all()
+        # Batch query all mastery states for this student (from student's private DB)
+        all_masteries = sdb.query(MasteryState).filter(MasteryState.student_id == student_id).all()
         mastery_by_skill_id = {m.skill_id: m for m in all_masteries}
         
         # Cache all skills by code and by id for prerequisite graph lookups
@@ -104,38 +117,47 @@ class AnalyticsService:
                 "prerequisite_gap": has_prereq_gap
             })
 
-        # Calculate overall score percentage directly from database attempts
-        recent_attempts = db.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).all()
+        # Calculate overall score percentage directly from student's private DB
+        recent_attempts = sdb.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).all()
         if recent_attempts:
             correct_count = sum(1 for a in recent_attempts if a.correct)
             score_pct = round((correct_count / len(recent_attempts)) * 100.0, 1)
         else:
             score_pct = None # Genuinely unassessed fresh learner
 
-        # Active & Resolved Misconceptions
-        active_instances = db.query(StudentMisconceptionInstance).filter(
+        # Active & Resolved Misconceptions (from student's private DB)
+        active_instances = sdb.query(StudentMisconceptionInstance).filter(
             StudentMisconceptionInstance.student_id == student_id,
             StudentMisconceptionInstance.status == "active"
         ).all()
 
-        resolved_instances = db.query(StudentMisconceptionInstance).filter(
+        resolved_instances = sdb.query(StudentMisconceptionInstance).filter(
             StudentMisconceptionInstance.student_id == student_id,
             StudentMisconceptionInstance.status == "resolved"
         ).all()
 
         pattern_ids = list(set([i.pattern_id for i in active_instances + resolved_instances]))
+        # MisconceptionPattern lives in shared DB
         patterns_map = {p.id: p for p in db.query(MisconceptionPattern).filter(MisconceptionPattern.id.in_(pattern_ids)).all()} if pattern_ids else {}
+
+        # Enrich misconception instances with skill info from shared DB
+        skill_ids_needed = list(set([i.skill_id for i in active_instances + resolved_instances]))
+        skills_map = {}
+        if skill_ids_needed:
+            from app.models.all_models import Skill as SharedSkill
+            skills_map = {s.id: s for s in db.query(SharedSkill).filter(SharedSkill.id.in_(skill_ids_needed)).all()}
 
         active_list = []
         for inst in active_instances:
             pattern = patterns_map.get(inst.pattern_id)
+            skill = skills_map.get(inst.skill_id)
             active_list.append({
                 "id": inst.id,
                 "pattern_id": inst.pattern_id,
                 "pattern_name": pattern.name if pattern else "Misconception",
                 "skill_id": inst.skill_id,
-                "skill_name": inst.skill.name if inst.skill else "",
-                "skill_code": inst.skill.code if inst.skill else "",
+                "skill_name": skill.name if skill else "",
+                "skill_code": skill.code if skill else "",
                 "classification": pattern.classification if pattern else "procedural",
                 "occurrences": inst.occurrences,
                 "why_it_is_wrong": pattern.description if pattern else "",
@@ -148,37 +170,50 @@ class AnalyticsService:
         resolved_list = []
         for inst in resolved_instances:
             pattern = patterns_map.get(inst.pattern_id)
+            skill = skills_map.get(inst.skill_id)
             resolved_list.append({
                 "id": inst.id,
                 "pattern_name": pattern.name if pattern else "Misconception",
                 "skill_id": inst.skill_id,
-                "skill_name": inst.skill.name if inst.skill else "",
+                "skill_name": skill.name if skill else "",
                 "resolution_history": inst.resolution_history or []
             })
 
-        # Emerging Gaps
-        gaps = db.query(EmergingGap).filter(
+        # Emerging Gaps (from student's private DB)
+        gaps = sdb.query(EmergingGap).filter(
             EmergingGap.student_id == student_id,
             EmergingGap.status == "active"
         ).all()
+        gap_skill_ids = [g.skill_id for g in gaps]
+        gap_skills_map = {}
+        if gap_skill_ids:
+            from app.models.all_models import Skill as SharedSkill
+            gap_skills_map = {s.id: s for s in db.query(SharedSkill).filter(SharedSkill.id.in_(gap_skill_ids)).all()}
         gaps_list = [{
             "id": g.id,
             "title": g.title,
             "description": g.description,
             "risk_level": g.risk_level,
             "trigger_reason": g.trigger_reason,
-            "skill_name": g.skill.name if g.skill else ""
+            "skill_name": gap_skills_map.get(g.skill_id, {}).name if hasattr(gap_skills_map.get(g.skill_id, {}), 'name') else ""
         } for g in gaps]
 
-        # Recent Interventions
-        interventions = db.query(InterventionHistory).filter(
+        # Recent Interventions (from student's private DB)
+        interventions = sdb.query(InterventionHistory).filter(
             InterventionHistory.student_id == student_id
         ).order_by(InterventionHistory.completed_at.desc()).limit(5).all()
 
+        # Look up intervention titles from shared DB
+        from app.models.all_models import Intervention as SharedIntervention
+        int_ids = [ih.intervention_id for ih in interventions]
+        int_map = {}
+        if int_ids:
+            int_map = {iv.id: iv for iv in db.query(SharedIntervention).filter(SharedIntervention.id.in_(int_ids)).all()}
+
         intervention_list = [{
             "id": ih.id,
-            "title": ih.intervention.title if ih.intervention else "Targeted Practice",
-            "type": ih.intervention.intervention_type if ih.intervention else "worked_example",
+            "title": int_map[ih.intervention_id].title if ih.intervention_id in int_map else "Targeted Practice",
+            "type": int_map[ih.intervention_id].intervention_type if ih.intervention_id in int_map else "worked_example",
             "before_mastery": round(ih.before_mastery, 2),
             "after_mastery": round(ih.after_mastery, 2) if ih.after_mastery else round(ih.before_mastery, 2),
             "delta": round(((ih.after_mastery or ih.before_mastery) - ih.before_mastery) * 100, 1),
@@ -502,13 +537,38 @@ class AnalyticsService:
         top_patterns = patterns[:8]
         top_pattern_ids = [p.id for p in top_patterns]
 
-        all_instances = db.query(StudentMisconceptionInstance).filter(
-            StudentMisconceptionInstance.pattern_id.in_(top_pattern_ids)
-        ).all()
+        from app.database import get_student_db
+        all_instances = []
+        for st in students:
+            sdb = None
+            try:
+                sdb = get_student_db(st.id)
+                st_inst = sdb.query(StudentMisconceptionInstance).filter(
+                    StudentMisconceptionInstance.pattern_id.in_(top_pattern_ids)
+                ).all()
+                all_instances.extend(st_inst)
+            except Exception:
+                pass
+            finally:
+                if sdb:
+                    sdb.close()
+
+        # Fallback to shared DB if no private instances found
+        if not all_instances:
+            all_instances = db.query(StudentMisconceptionInstance).filter(
+                StudentMisconceptionInstance.pattern_id.in_(top_pattern_ids)
+            ).all()
+
         instance_map = {(inst.student_id, inst.pattern_id): inst for inst in all_instances}
 
         for st in students:
-            twin = AnalyticsService.get_student_knowledge_twin(db, st.id)
+            sdb = None
+            try:
+                sdb = get_student_db(st.id)
+                twin = AnalyticsService.get_student_knowledge_twin(db, st.id, student_db=sdb)
+            finally:
+                if sdb:
+                    sdb.close()
             primary_gap = twin["emerging_gaps"][0]["title"] if twin["emerging_gaps"] else (
                 twin["active_misconceptions"][0]["pattern_name"] if twin["active_misconceptions"] else "No active gaps"
             )
@@ -594,12 +654,15 @@ class AnalyticsService:
         }
 
     @staticmethod
-    def get_student_progress(db: Session, student_id: str) -> Dict[str, Any]:
+    def get_student_progress(db: Session, student_id: str, student_db: Optional[Session] = None) -> Dict[str, Any]:
         """
         Calculates authoritative learner progress directly from database attempts,
         mastery states, and interventions.
         """
-        student = db.query(Student).filter(Student.id == student_id).first()
+        sdb = student_db if student_db is not None else db
+        student = sdb.query(Student).filter(Student.id == student_id).first()
+        if not student:
+            student = db.query(Student).filter(Student.id == student_id).first()
         if not student:
             return {
                 "user_id": student_id,
@@ -611,19 +674,19 @@ class AnalyticsService:
                 "recent_activity": []
             }
 
-        attempts = db.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).all()
+        attempts = sdb.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).all()
         total_attempts = len(attempts)
         correct_attempts = sum(1 for a in attempts if a.correct)
         score_pct = round((correct_attempts / total_attempts) * 100) if total_attempts > 0 else None
 
-        mastery_states = db.query(MasteryState).filter(
+        mastery_states = sdb.query(MasteryState).filter(
             MasteryState.student_id == student_id,
             MasteryState.evidence_count > 0
         ).all()
         assessed_skills_count = len(mastery_states)
 
         calibration = AnalyticsService.compute_calibration(attempts)
-        recent_activity = AnalyticsService.get_student_activity(db, student_id)[:20]
+        recent_activity = AnalyticsService.get_student_activity(db, student_id, student_db=student_db)[:20]
 
         return {
             "user_id": student_id,
@@ -636,17 +699,33 @@ class AnalyticsService:
         }
 
     @staticmethod
-    def get_student_activity(db: Session, student_id: str) -> List[Dict[str, Any]]:
+    def get_student_activity(db: Session, student_id: str, student_db: Optional[Session] = None) -> List[Dict[str, Any]]:
         """
         Retrieves authoritative activity feed for a student directly from PostgreSQL.
         Combines diagnostic attempts and intervention/retest events.
         """
         activities: List[Dict[str, Any]] = []
 
-        # 1. Attempts
-        attempts = db.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).limit(50).all()
+        sdb = student_db if student_db is not None else db
+        # 1. Attempts (from student's private DB)
+        attempts = sdb.query(Attempt).filter(Attempt.student_id == student_id).order_by(Attempt.created_at.desc()).limit(50).all()
+
+        # Pre-fetch question + skill info from shared DB to avoid cross-DB relationship issues
+        from app.models.all_models import Question, Skill
+        question_ids = [a.question_id for a in attempts]
+        questions_map = {}
+        if question_ids:
+            qs = db.query(Question).filter(Question.id.in_(question_ids)).all()
+            questions_map = {q.id: q for q in qs}
+        skill_ids_from_q = list(set(q.skill_id for q in questions_map.values() if q.skill_id))
+        skills_from_q = {}
+        if skill_ids_from_q:
+            skills_from_q = {s.id: s for s in db.query(Skill).filter(Skill.id.in_(skill_ids_from_q)).all()}
+
         for a in attempts:
-            skill_name = a.question.skill.name if a.question and a.question.skill else "Diagnostic Question"
+            q_obj = questions_map.get(a.question_id)
+            skill = skills_from_q.get(q_obj.skill_id) if q_obj else None
+            skill_name = skill.name if skill else "Diagnostic Question"
             pattern_name = a.diagnosis.get("likely_misconception") or a.diagnosis.get("misconception_name") if a.diagnosis else None
 
             title = f"Diagnostic: {skill_name}"
@@ -667,13 +746,18 @@ class AnalyticsService:
                 "timestamp": ts
             })
 
-        # 2. Retests & Interventions
-        interventions = db.query(InterventionHistory).filter(InterventionHistory.student_id == student_id).order_by(InterventionHistory.completed_at.desc()).limit(30).all()
+        # 2. Retests & Interventions (from student's private DB)
+        interventions = sdb.query(InterventionHistory).filter(InterventionHistory.student_id == student_id).order_by(InterventionHistory.completed_at.desc()).limit(30).all()
+        # Look up skill names from shared DB
+        ih_skill_ids = list(set(ih.skill_id for ih in interventions if ih.skill_id))
+        ih_skills_map = {}
+        if ih_skill_ids:
+            ih_skills_map = {s.id: s for s in db.query(Skill).filter(Skill.id.in_(ih_skill_ids)).all()}
         for ih in interventions:
             is_resolved = (ih.retest_result or {}).get("misconception_resolved", False) if ih.retest_result else False
             delta = round(((ih.after_mastery or ih.before_mastery) - ih.before_mastery) * 100, 1)
-
-            title = f"Targeted Retest: {ih.skill.name if ih.skill else 'Skill Review'}"
+            ih_skill = ih_skills_map.get(ih.skill_id)
+            title = f"Targeted Retest: {ih_skill.name if ih_skill else 'Skill Review'}"
             score_or_result = f"Mastery +{delta}%" if is_resolved else "Active Gap"
 
             ts = ih.completed_at.isoformat() if ih.completed_at else (ih.started_at.isoformat() if ih.started_at else "")
@@ -692,18 +776,54 @@ class AnalyticsService:
     @staticmethod
     def get_teacher_cohort(db: Session) -> List[Dict[str, Any]]:
         """
-        Retrieves cohort summary for teacher dashboard.
+        Retrieves cohort summary for teacher dashboard using fast batch queries.
         Returns list of students with calculated overall mastery, risk status, and active interventions.
         """
+        from app.database import get_student_db
         students = db.query(Student).all()
+
+        states_by_student: Dict[str, list] = {}
+        attempts_by_student: Dict[str, list] = {}
+        active_misc_by_student: Dict[str, list] = {}
+
+        for s in students:
+            sdb = None
+            try:
+                sdb = get_student_db(s.id)
+                s_states = sdb.query(MasteryState).filter(MasteryState.student_id == s.id).all()
+                s_attempts = sdb.query(Attempt).filter(Attempt.student_id == s.id).all()
+                s_misc = sdb.query(StudentMisconceptionInstance).filter(
+                    StudentMisconceptionInstance.student_id == s.id,
+                    StudentMisconceptionInstance.status == "active"
+                ).all()
+                states_by_student[s.id] = s_states
+                attempts_by_student[s.id] = s_attempts
+                active_misc_by_student[s.id] = s_misc
+            except Exception:
+                pass
+            finally:
+                if sdb:
+                    sdb.close()
+
+        # Fallback to shared DB if no private data was retrieved
+        if not any(states_by_student.values()):
+            for st in db.query(MasteryState).all():
+                states_by_student.setdefault(st.student_id, []).append(st)
+        if not any(attempts_by_student.values()):
+            for att in db.query(Attempt).all():
+                attempts_by_student.setdefault(att.student_id, []).append(att)
+        if not any(active_misc_by_student.values()):
+            for m in db.query(StudentMisconceptionInstance).filter(StudentMisconceptionInstance.status == "active").all():
+                active_misc_by_student.setdefault(m.student_id, []).append(m)
+
         cohort = []
         for s in students:
-            states = db.query(MasteryState).filter(MasteryState.student_id == s.id).all()
+            states = states_by_student.get(s.id, [])
             assessed_states = [st for st in states if st.evidence_count > 0]
             if assessed_states:
                 overall_mastery = sum(st.mastery_probability for st in assessed_states) / len(assessed_states)
             else:
-                attempts = db.query(Attempt).filter(Attempt.student_id == s.id).all()
+                attempts = attempts_by_student.get(s.id, [])
                 if attempts:
                     overall_mastery = sum(1 for a in attempts if a.correct) / len(attempts)
                 else:
@@ -718,10 +838,7 @@ class AnalyticsService:
             else:
                 risk_status = "needs_support"
 
-            active_interventions = db.query(StudentMisconceptionInstance).filter(
-                StudentMisconceptionInstance.student_id == s.id,
-                StudentMisconceptionInstance.status == "active"
-            ).count()
+            active_interventions = len(active_misc_by_student.get(s.id, []))
 
             cohort.append({
                 "student_id": s.id,
@@ -735,14 +852,26 @@ class AnalyticsService:
     @staticmethod
     def get_teacher_struggling_topics(db: Session) -> List[Dict[str, Any]]:
         """
-        Retrieves topic / skill performance across the student cohort.
+        Retrieves topic / skill performance across the student cohort with batched queries.
         Returns topics sorted by need for support (struggling topics first).
         """
         skills = db.query(Skill).all()
-        topics = []
+        all_states = db.query(MasteryState).all()
+        all_active_misc = db.query(StudentMisconceptionInstance).filter(
+            StudentMisconceptionInstance.status == "active"
+        ).all()
 
+        states_by_skill: Dict[str, list] = {}
+        for st in all_states:
+            states_by_skill.setdefault(st.skill_id, []).append(st)
+
+        active_misc_by_skill: Dict[str, list] = {}
+        for m in all_active_misc:
+            active_misc_by_skill.setdefault(m.skill_id, []).append(m)
+
+        topics = []
         for sk in skills:
-            m_states = db.query(MasteryState).filter(MasteryState.skill_id == sk.id).all()
+            m_states = states_by_skill.get(sk.id, [])
             assessed = [m for m in m_states if m.evidence_count > 0]
             if assessed:
                 avg_m = sum(m.mastery_probability for m in assessed) / len(assessed)
@@ -751,11 +880,8 @@ class AnalyticsService:
                 avg_m = 0.45
                 struggling = 0
 
-            active_misc = db.query(StudentMisconceptionInstance).filter(
-                StudentMisconceptionInstance.skill_id == sk.id,
-                StudentMisconceptionInstance.status == "active"
-            ).count()
-            struggling_count = max(struggling, active_misc)
+            active_misc_count = len(active_misc_by_skill.get(sk.id, []))
+            struggling_count = max(struggling, active_misc_count)
 
             topics.append({
                 "topic_id": sk.id,
@@ -777,7 +903,54 @@ class AnalyticsService:
         - View 3: Same-Score Different-Twins Proof (Student A vs Student B / Maya vs Arjun)
         - High-level cohort summary metrics for new dashboard
         """
-        cohort = AnalyticsService.get_teacher_cohort(db)
+        students = db.query(Student).all()
+        all_states = db.query(MasteryState).all()
+        all_attempts = db.query(Attempt).all()
+        heatmap_records = db.query(StudentMisconceptionInstance).filter(
+            StudentMisconceptionInstance.status == "active"
+        ).all()
+
+        states_by_student: Dict[str, list] = {}
+        for st in all_states:
+            states_by_student.setdefault(st.student_id, []).append(st)
+
+        attempts_by_student: Dict[str, list] = {}
+        for att in all_attempts:
+            attempts_by_student.setdefault(att.student_id, []).append(att)
+
+        active_misc_by_student: Dict[str, list] = {}
+        for m in heatmap_records:
+            active_misc_by_student.setdefault(m.student_id, []).append(m)
+
+        cohort = []
+        for s in students:
+            states = states_by_student.get(s.id, [])
+            assessed_states = [st for st in states if st.evidence_count > 0]
+            if assessed_states:
+                overall_mastery = sum(st.mastery_probability for st in assessed_states) / len(assessed_states)
+            else:
+                attempts = attempts_by_student.get(s.id, [])
+                if attempts:
+                    overall_mastery = sum(1 for a in attempts if a.correct) / len(attempts)
+                else:
+                    overall_mastery = 0.35
+
+            overall_mastery = round(overall_mastery, 2)
+            if overall_mastery >= 0.85:
+                risk_status = "high_performer"
+            elif overall_mastery >= 0.50:
+                risk_status = "on_track"
+            else:
+                risk_status = "needs_support"
+
+            cohort.append({
+                "student_id": s.id,
+                "full_name": s.name,
+                "overall_mastery": overall_mastery,
+                "risk_status": risk_status,
+                "active_interventions_count": len(active_misc_by_student.get(s.id, [])),
+            })
+
         total_students = len(cohort)
         if total_students > 0:
             avg_cohort_mastery = round(sum(s["overall_mastery"] for s in cohort) / total_students, 2)
@@ -793,14 +966,11 @@ class AnalyticsService:
         students_detail = []
         for c in cohort:
             s_id = c["student_id"]
-            states = db.query(MasteryState).filter(MasteryState.student_id == s_id).all()
+            states = states_by_student.get(s_id, [])
             skills_mastery = {st.skill.code if st.skill else st.skill_id: round(st.mastery_probability, 2) for st in states}
             
-            active_m = db.query(StudentMisconceptionInstance).filter(
-                StudentMisconceptionInstance.student_id == s_id,
-                StudentMisconceptionInstance.status == "active"
-            ).first()
-            primary_gap = active_m.pattern.name if (active_m and active_m.pattern) else c["risk_status"].replace("_", " ").title()
+            user_miscs = active_misc_by_student.get(s_id, [])
+            primary_gap = user_miscs[0].pattern.name if (user_miscs and user_miscs[0].pattern) else c["risk_status"].replace("_", " ").title()
 
             students_detail.append({
                 "id": s_id,
@@ -812,9 +982,6 @@ class AnalyticsService:
                 "skills_mastery": skills_mastery,
             })
 
-        heatmap_records = db.query(StudentMisconceptionInstance).filter(
-            StudentMisconceptionInstance.status == "active"
-        ).all()
         heatmap = [
             {
                 "student_id": hr.student_id,

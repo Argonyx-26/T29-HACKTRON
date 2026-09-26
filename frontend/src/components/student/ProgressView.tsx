@@ -1,16 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { learningRepository, LearnerProgressSummary } from '../../services/learningRepository';
-import { ArrowRight, Award, Bell, BookOpen, CalendarDays, CheckCircle2, ClipboardList, Clock, Flame, Search, Target, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Award, Bell, BookOpen, CalendarDays, CheckCircle2, ClipboardList, Clock, Flame, Search, Target, TrendingUp } from 'lucide-react';
 
 interface ProgressViewProps {
   userId: string;
   onNavigateToAssess: () => void;
   onNavigateToLearn: () => void;
+  onNavigateToHome?: () => void;
 }
 
 type ProgressTab = 'overview' | 'skills' | 'assessments' | 'time';
 
-export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateToAssess, onNavigateToLearn }) => {
+export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateToAssess, onNavigateToLearn, onNavigateToHome }) => {
   const [progress, setProgress] = useState<LearnerProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
@@ -47,6 +48,11 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateTo
 
   return (
     <div className="progress-dashboard">
+      {onNavigateToHome && (
+        <button type="button" className="page-back-button" onClick={onNavigateToHome}>
+          <ArrowLeft size={15} /> Back to Dashboard
+        </button>
+      )}
       <div className="progress-topbar"><label><Search size={18} /><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search topics, skills, or questions..." aria-label="Search progress" /></label><button aria-label="Progress notifications"><Bell size={20} /><span /></button></div>
 
       <header className="progress-heading">
@@ -67,10 +73,15 @@ export const ProgressView: React.FC<ProgressViewProps> = ({ userId, onNavigateTo
         </div>
       )}
 
-      {activeTab === 'overview' && <div className="progress-overview-grid">
-        <section className="progress-panel progress-distribution"><header><div><h2>Response Distribution</h2><p>Accuracy across your recorded answers.</p></div><span>{loading ? 'Loading' : 'Live data'}</span></header><div className="progress-distribution-body"><div className="progress-donut" style={{ '--progress-value': `${accuracy ?? 0}%` } as React.CSSProperties}><div><strong>{total}</strong><small>Responses</small></div></div><div className="progress-legend"><p><i className="is-correct" />Correct answers <strong>{correct}</strong></p><p><i className="is-review" />Needs review <strong>{Math.max(0, total - correct)}</strong></p><p><i className="is-neutral" />Accuracy <strong>{accuracy === null || accuracy === undefined ? '—' : `${accuracy}%`}</strong></p></div></div></section>
-        <section className="progress-panel progress-next"><span className="progress-eyebrow">YOUR NEXT STEP</span><h2>{total ? 'Keep building your understanding.' : 'Your learning journey starts here.'}</h2><p>{total ? 'Practice another topic and see how your evidence grows.' : 'Complete a diagnostic or explore a topic to start collecting progress.'}</p><div><button onClick={onNavigateToLearn}>Explore topics <BookOpen size={15} /></button><button onClick={onNavigateToAssess}>Take an assessment <ArrowRight size={15} /></button></div></section>
-      </div>}
+      {activeTab === 'overview' && (
+        <section className="progress-panel progress-distribution" style={{ marginBottom: '14px' }}>
+          <header><div><h2>Response Distribution</h2><p>Accuracy across your recorded answers.</p></div><span>{loading ? 'Loading' : 'Live data'}</span></header>
+          <div className="progress-distribution-body">
+            <div className="progress-donut" style={{ '--progress-value': `${accuracy ?? 0}%` } as React.CSSProperties}><div><strong>{total}</strong><small>Responses</small></div></div>
+            <div className="progress-legend"><p><i className="is-correct" />Correct answers <strong>{correct}</strong></p><p><i className="is-review" />Needs review <strong>{Math.max(0, total - correct)}</strong></p><p><i className="is-neutral" />Accuracy <strong>{accuracy === null || accuracy === undefined ? '—' : `${accuracy}%`}</strong></p></div>
+          </div>
+        </section>
+      )}
 
       {activeTab === 'skills' && <section className="progress-panel progress-tab-panel"><header><div><h2>Subject Skill Evidence</h2><p>Recorded learning events that contribute to your skill understanding.</p></div><span>{progress?.assessed_skills_count || 0} skills</span></header><div className="progress-evidence-strip"><span><BookOpen size={19} /></span><div><strong>{progress?.assessed_skills_count || 0} skills assessed</strong><small>Skill level detail will appear here as your learning data grows.</small></div><button onClick={onNavigateToLearn}>Explore skills <ArrowRight size={14} /></button></div></section>}
 

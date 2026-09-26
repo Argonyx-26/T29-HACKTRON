@@ -10,6 +10,7 @@ import {
   Sparkles,
   AlertTriangle,
   ArrowRight,
+  ArrowLeft,
   Award,
   CheckCircle2,
   PieChart,
@@ -462,6 +463,15 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
   return (
     <div className={`teacher-dashboard ${currentTab === 'overview' || currentTab === 'students' || currentTab === 'insights' || currentTab === 'content' ? 'teacher-overview-dashboard' : ''} flex flex-col gap-6 max-w-6xl mx-auto py-2`}>
       {loadError && <div role="status" className="teacher-load-error"><span>{loadError}</span><button onClick={loadTeacherData}>Retry</button></div>}
+      {currentTab !== 'overview' && (
+        <button
+          type="button"
+          className="page-back-button"
+          onClick={() => handleTabChange('overview')}
+        >
+          <ArrowLeft size={15} /> Back to Overview
+        </button>
+      )}
       <div className="teacher-topbar"><label><Search size={18} /><input value={studentSearch} onChange={event => setStudentSearch(event.target.value)} placeholder={currentTab === 'content' ? 'Search for students, topics, or materials...' : 'Search for students, topics, or insights...'} /></label><button aria-label="Teacher notifications"><Bell size={20} /><i /></button></div>
       
       {/* Header & Sub-Navigation */}

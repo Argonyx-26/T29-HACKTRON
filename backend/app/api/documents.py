@@ -172,11 +172,17 @@ def parse_document_endpoint(document_id: str, db: Session = Depends(get_db)):
         }
     ]
 
+    questions_count = db.query(Question).filter(Question.chapter_id == doc.chapter_id, Question.active == True).count() if doc.chapter_id else 0
+
     return {
         "id": doc.id,
         "document_id": doc.id,
+        "chapter_id": doc.chapter_id,
         "title": chapter.title if chapter else doc.filename.replace(".pdf", ""),
+        "subject": chapter.subject if chapter else "General",
         "status": "processed",
+        "skills_count": len(skills),
+        "questions_count": questions_count,
         "extracted_length": len(extraction.extracted_text_preview) if extraction and extraction.extracted_text_preview else 1200,
         "extracted_outline": outline
     }

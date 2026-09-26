@@ -231,3 +231,31 @@ class DocumentStatusResponse(BaseModel):
     chapter_id: Optional[str] = None
     extracted_summary: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+
+# --- Assessment Report Schemas ---
+class AssessmentReportCreate(BaseModel):
+    id: Optional[str] = None
+    student_id: str
+    chapter_id: Optional[str] = None
+    chapter_title: str
+    total_questions: int
+    attempted_count: int
+    correct_count: int
+    incorrect_count: int
+    score_percent: int
+    evaluated_items: List[Dict[str, Any]] = []
+
+class AssessmentReportResponse(BaseModel):
+    id: str
+    student_id: str
+    chapter_id: Optional[str] = None
+    chapter_title: str
+    total_questions: int
+    attempted_count: int
+    correct_count: int
+    incorrect_count: int
+    score_percent: int
+    evaluated_items: List[Dict[str, Any]] = []
+    created_at: Optional[Any] = None
+
+    model_config = ConfigDict(from_attributes=True)

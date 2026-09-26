@@ -21,8 +21,8 @@
   --amber-light: #f59e0b26;
   --rose-error: #ffb4ab;
   --rose-light: #ffb4ab26;
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: "Plus Jakarta Sans", sans-serif;
+  --font-sans: "Satoshi", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-heading: "Satoshi", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -5409,7 +5409,7 @@ select option {
   border-color: #17151b;
 }
 .landing-frame,.landing-frame *,.landing-title,.landing-section-heading h2,.landing-outcomes-copy h2,.landing-info-card h3,.landing-bottom-cta h2 {
-  font-family: Plus Jakarta Sans,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif !important;
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 .landing-section-heading h2,.landing-outcomes-copy h2,.landing-bottom-cta h2 {
   letter-spacing: -.045em;
@@ -5743,18 +5743,22 @@ button:focus-visible, a:focus-visible { outline-color: #c08a37 !important; }
 .sidebar-nav-button { color: #505b64 !important; }
 .sidebar-nav-button svg { color: #74808a !important; }
 .sidebar-nav-button:hover:not(.is-active) { color: #17212a !important; background: #f2f4f5 !important; }
-.sidebar-nav-button.is-active {
+.sidebar-nav-button.is-active,
+.sidebar-nav-button.is-active span,
+.sidebar-nav-button.is-active svg {
   color: #ffffff !important;
+}
+.sidebar-nav-button.is-active {
   background: #10212d !important;
   border-color: #10212d !important;
   box-shadow: none !important;
 }
-.sidebar-nav-button.is-active svg { color: #ffffff !important; }
 .app-shell h1, .app-shell h2, .app-shell h3, .app-shell h4, .app-shell h5, .app-shell h6 { color: #17212a !important; }
 .app-shell p, .app-shell label { color: #53606a; }
 .app-shell a { color: #8c632c; }
 .app-shell .btn-primary, .app-shell .learning-primary, .app-shell .login-submit,
-.app-shell .teacher-tabs button[class*="bg-primary"] {
+.app-shell .teacher-tabs button[class*="bg-primary"],
+.app-shell .btn-primary span, .app-shell .learning-primary span, .app-shell .login-submit span {
   color: #ffffff !important;
   background: #10212d !important;
   border-color: #10212d !important;
@@ -5789,10 +5793,10 @@ button:focus-visible, a:focus-visible { outline-color: #c08a37 !important; }
   border-color: #e0e4e7 !important;
   box-shadow: 0 3px 12px rgba(20,31,40,.045) !important;
 }
-.app-shell [style*="color: rgb(255, 255, 255)"],
-.app-shell [style*="color: rgb(248, 250, 252)"],
-.app-shell [style*="color: rgb(229, 226, 225)"],
-.app-shell [class~="text-white"] { color: #17212a !important; }
+.app-shell :not(button):not([class*="-btn"]):not(.btn)[style*="color: rgb(255, 255, 255)"]:not(button *),
+.app-shell :not(button):not([class*="-btn"]):not(.btn)[style*="color: rgb(248, 250, 252)"]:not(button *),
+.app-shell :not(button):not([class*="-btn"]):not(.btn)[style*="color: rgb(229, 226, 225)"]:not(button *),
+.app-shell :not(button):not([class*="-btn"]):not(.btn)[class~="text-white"]:not(button *) { color: #17212a !important; }
 .app-shell [style*="color: rgb(215, 186, 255)"],
 .app-shell [style*="color: rgb(205, 194, 215)"],
 .app-shell [style*="color: rgb(192, 132, 252)"],
@@ -7983,3 +7987,653 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
   object-fit: contain;
   mix-blend-mode: normal;
 }
+
+/* ==========================================================================
+   UNIFIED ACCESSIBLE BUTTON TOKENS & HIGH-CONTRAST STANDARDIZATION
+   ========================================================================== */
+
+/* Universal Button Hierarchy */
+.btn-primary,
+.app-shell .btn-primary,
+button.btn-primary {
+  color: #ffffff !important;
+  background: #1e293b !important;
+  border: 1px solid #0f172a !important;
+  border-radius: 8px !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  padding: 8px 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12) !important;
+  text-decoration: none !important;
+}
+
+.btn-primary span,
+.app-shell .btn-primary span,
+button.btn-primary span,
+.btn-primary svg,
+button.btn-primary svg {
+  color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.app-shell .btn-primary:hover,
+button.btn-primary:hover {
+  background: #334155 !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18) !important;
+}
+
+.btn-primary:active,
+button.btn-primary:active {
+  transform: translateY(0) !important;
+}
+
+.btn-secondary,
+.app-shell .btn-secondary,
+button.btn-secondary {
+  color: #1e293b !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  text-decoration: none !important;
+}
+
+.btn-secondary span,
+.app-shell .btn-secondary span,
+button.btn-secondary span {
+  color: #1e293b !important;
+}
+
+.btn-secondary:hover,
+.app-shell .btn-secondary:hover,
+button.btn-secondary:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Revision Engine Skill Card Buttons (Solves dark-on-dark illegibility & missing buttons) */
+.revision-card-btn-urgent {
+  color: #ffffff !important;
+  background: #0f172a !important;
+  border: 1px solid #0f172a !important;
+  border-radius: 7px !important;
+  font-family: inherit !important;
+  font-weight: 700 !important;
+  font-size: 0.78rem !important;
+  padding: 6px 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 5px rgba(15, 23, 42, 0.2) !important;
+  transition: all 0.15s ease !important;
+}
+
+.revision-card-btn-urgent span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.revision-card-btn-urgent svg {
+  color: #ffffff !important;
+}
+
+.revision-card-btn-urgent:hover {
+  background: #273646 !important;
+  border-color: #273646 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25) !important;
+}
+
+.revision-card-btn-review {
+  color: #334155 !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 7px !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
+  padding: 5px 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.revision-card-btn-review span {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+.revision-card-btn-review svg {
+  color: #64748b !important;
+}
+
+.revision-card-btn-review:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Fix assessment buttons typography & sizing */
+#root .assessment-curriculum-grid article > button {
+  min-height: 36px !important;
+  font: 600 12px 'Satoshi', sans-serif !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  letter-spacing: 0.01em !important;
+}
+
+#root .assessment-tabs button {
+  font: 600 12px 'Satoshi', sans-serif !important;
+  border-radius: 7px !important;
+}
+
+/* ==========================================================================
+   STUDENT REVISION ENGINE - PAPER-AND-INK SATOSHI DASHBOARD THEME
+   Matches StudentHome, LearnView, and AssessmentView visual design system
+   ========================================================================== */
+
+#root .student-revision-shell {
+  background: #f6f7f5 !important;
+}
+
+#root .student-revision-workspace {
+  background: #f6f7f5 !important;
+}
+
+#root .student-revision-main {
+  max-width: none !important;
+  margin: 0 auto !important;
+  padding: 18px 24px 30px !important;
+  background-color: #f6f7f5 !important;
+  background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important;
+}
+
+#root .student-revision-sidebar {
+  color: #17232c !important;
+  background-color: #f6f7f5 !important;
+  background-image: repeating-linear-gradient(132deg, rgba(42,47,51,.014) 0, rgba(42,47,51,.014) .55px, transparent .55px, transparent 9px) !important;
+  border-right: 1px solid #cbd0d1 !important;
+}
+
+#root .student-revision-sidebar > div:first-child,
+#root .student-revision-sidebar .app-sidebar-footer {
+  border-color: #cbd0d1 !important;
+}
+
+#root .student-revision-sidebar .knowledge-twin-mark {
+  color: #fff !important;
+  background: #263741 !important;
+}
+
+#root .student-revision-sidebar .knowledge-twin-wordmark,
+#root .student-revision-sidebar .knowledge-twin-wordmark span {
+  color: #17232c !important;
+}
+
+#root .student-revision-sidebar .knowledge-twin-wordmark em {
+  color: #58646b !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button {
+  color: #34414a !important;
+  background: transparent !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  font-family: 'Satoshi', sans-serif !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button svg {
+  color: #293943 !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button:hover:not(.is-active) {
+  color: #17232c !important;
+  background: rgba(23,35,44,.05) !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button.is-active {
+  color: #17232c !important;
+  background: rgba(255,255,255,.5) !important;
+  border: 1px solid #c6cbcd !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button.is-active svg {
+  color: #17232c !important;
+}
+
+#root .student-revision-sidebar .sidebar-nav-button.is-active span {
+  color: #17232c !important;
+}
+
+#root .student-revision-sidebar .app-sidebar-footer button {
+  color: #34414a !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .student-revision-sidebar .app-sidebar-footer button:hover {
+  background: rgba(23,35,44,.05) !important;
+}
+
+#root .student-revision-sidebar .app-sidebar-footer svg {
+  color: #34414a !important;
+}
+
+#root .revision-engine-container {
+  color: #17232c !important;
+  font-family: 'Satoshi', sans-serif !important;
+}
+
+/* 1. Header */
+#root .revision-header-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #435059 !important;
+  background: rgba(23, 35, 44, 0.045) !important;
+  border: 1px solid #ccd1d2 !important;
+  border-radius: 4px !important;
+  padding: 4px 9px !important;
+  font: 600 11px 'Satoshi', sans-serif !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+#root .revision-header-title {
+  margin: 2px 0 0 !important;
+  color: #111d2a !important;
+  font: 800 clamp(32px, 3.5vw, 44px)/1.05 'Satoshi', sans-serif !important;
+  letter-spacing: -.04em !important;
+}
+
+#root .revision-header-sub {
+  color: #58646b !important;
+  font: 400 14px/1.5 'Satoshi', sans-serif !important;
+  margin: 6px 0 0 0 !important;
+  max-width: 780px !important;
+}
+
+/* 2. Resilience Metrics Cards */
+#root .revision-metric-card {
+  color: #17232c !important;
+  background: rgba(255, 255, 255, 0.34) !important;
+  border: 1px solid #c6cbcd !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  padding: 14px 18px !important;
+  font-family: 'Satoshi', sans-serif !important;
+}
+
+#root .revision-metric-label {
+  font: 600 11px 'Satoshi', sans-serif !important;
+  color: #59656c !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+#root .revision-metric-value {
+  font: 700 24px 'Satoshi', sans-serif !important;
+  color: #17232c !important;
+}
+
+#root .revision-metric-desc {
+  font: 400 11px/1.4 'Satoshi', sans-serif !important;
+  color: #626d73 !important;
+  margin-top: 3px !important;
+}
+
+/* 3. Hero Banner ("3-Minute Retrieval Practice Recommended Today") */
+#root .revision-hero-banner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 20px !important;
+  padding: 22px 26px !important;
+  background: rgba(255, 255, 255, 0.38) !important;
+  border: 1px solid #c6cbcd !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  color: #17232c !important;
+  font-family: 'Satoshi', sans-serif !important;
+  margin-bottom: 24px !important;
+}
+
+#root .revision-hero-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: #435059 !important;
+  background: rgba(23, 35, 44, 0.045) !important;
+  border: 1px solid #ccd1d2 !important;
+  border-radius: 4px !important;
+  padding: 4px 9px !important;
+  font: 600 11px 'Satoshi', sans-serif !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+#root .revision-hero-banner h2 {
+  color: #17232c !important;
+  font: 600 clamp(20px, 1.8vw, 24px)/1.25 'Satoshi', sans-serif !important;
+  letter-spacing: -0.02em !important;
+  margin: 6px 0 8px 0 !important;
+}
+
+#root .revision-hero-banner p {
+  color: #59656c !important;
+  font: 400 13px/1.5 'Satoshi', sans-serif !important;
+  margin: 0 !important;
+  max-width: 680px !important;
+}
+
+#root .revision-hero-meta {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  margin-top: 12px !important;
+}
+
+#root .revision-hero-meta-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 4px 10px !important;
+  background: rgba(23, 35, 44, 0.04) !important;
+  border: 1px solid #d1d5d5 !important;
+  border-radius: 4px !important;
+  color: #293943 !important;
+  font: 500 11px 'Satoshi', sans-serif !important;
+}
+
+#root .revision-hero-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 42px !important;
+  padding: 0 20px !important;
+  color: #ffffff !important;
+  background: #2d3941 !important;
+  border: 1px solid #2d3941 !important;
+  border-radius: 5px !important;
+  box-shadow: none !important;
+  font: 600 13px 'Satoshi', sans-serif !important;
+  cursor: pointer !important;
+  transition: background 140ms ease !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+#root .revision-hero-btn:hover {
+  background: #39464e !important;
+  border-color: #39464e !important;
+}
+
+#root .revision-hero-btn span,
+#root .revision-hero-btn svg {
+  color: #ffffff !important;
+}
+
+/* 4. Active Practice Runner */
+#root .revision-runner-card {
+  background: rgba(255, 255, 255, 0.42) !important;
+  border: 1px solid #c6cbcd !important;
+  border-radius: 6px !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  box-shadow: none !important;
+  color: #17232c !important;
+  font-family: 'Satoshi', sans-serif !important;
+}
+
+#root .revision-runner-card h3 {
+  color: #17232c !important;
+  font: 700 18px 'Satoshi', sans-serif !important;
+  margin: 0 !important;
+}
+
+#root .revision-prompt-box {
+  padding: 16px 20px !important;
+  background: rgba(255, 255, 255, 0.45) !important;
+  border: 1px solid #cbd0d1 !important;
+  border-radius: 5px !important;
+  margin-bottom: 16px !important;
+}
+
+#root .revision-prompt-box input {
+  padding: 8px 12px !important;
+  border: 1px solid #c2c7c9 !important;
+  border-radius: 4px !important;
+  font: 600 14px 'Satoshi', sans-serif !important;
+  color: #17232c !important;
+  background: #ffffff !important;
+}
+
+#root .revision-prompt-box input:focus {
+  border-color: #4b5860 !important;
+  box-shadow: 0 0 0 2px rgba(45,57,65,.12) !important;
+  outline: none !important;
+}
+
+/* 5. Matrix Section & Filter Pills */
+#root .revision-matrix-heading h2 {
+  color: #17232c !important;
+  font: 700 20px 'Satoshi', sans-serif !important;
+  letter-spacing: -.02em !important;
+  margin: 0 !important;
+}
+
+#root .revision-matrix-heading p {
+  color: #5c676e !important;
+  font: 400 13px 'Satoshi', sans-serif !important;
+  margin: 3px 0 0 !important;
+}
+
+#root .revision-filters-wrap {
+  display: flex !important;
+  gap: 6px !important;
+  background: rgba(255, 255, 255, 0.25) !important;
+  padding: 3px !important;
+  border-radius: 6px !important;
+  border: 1px solid #cbd0d1 !important;
+}
+
+#root .revision-filter-pill {
+  min-width: 0 !important;
+  padding: 6px 12px !important;
+  color: #46535a !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid transparent !important;
+  border-radius: 4px !important;
+  font: 500 11px 'Satoshi', sans-serif !important;
+  cursor: pointer !important;
+  transition: all 120ms ease !important;
+}
+
+#root .revision-filter-pill:hover {
+  color: #17232c !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+#root .revision-filter-pill.is-active {
+  color: #ffffff !important;
+  background: #303a41 !important;
+  border-color: #303a41 !important;
+}
+
+#root .revision-filter-pill.is-active span {
+  color: #ffffff !important;
+}
+
+/* 6. Skill Cards Grid */
+#root .revision-skill-card {
+  color: #17232c !important;
+  background: rgba(255, 255, 255, 0.34) !important;
+  border: 1px solid #c6cbcd !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  padding: 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  transition: background 140ms ease, border-color 140ms ease !important;
+  font-family: 'Satoshi', sans-serif !important;
+}
+
+#root .revision-skill-card:hover {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: #aeb5b8 !important;
+}
+
+#root .revision-skill-badge {
+  font: 600 11px 'Satoshi', sans-serif !important;
+  padding: 2px 7px !important;
+  border-radius: 4px !important;
+  background: rgba(23, 35, 44, 0.05) !important;
+  border: 1px solid #ccd1d2 !important;
+  color: #293943 !important;
+}
+
+#root .revision-skill-title {
+  color: #17232c !important;
+  font: 600 14px 'Satoshi', sans-serif !important;
+  margin: 6px 0 4px !important;
+}
+
+#root .revision-skill-chapter {
+  color: #606b72 !important;
+  font: 400 11px 'Satoshi', sans-serif !important;
+}
+
+#root .revision-skill-card button.revision-card-btn-urgent {
+  color: #ffffff !important;
+  background: #2d3941 !important;
+  border: 1px solid #2d3941 !important;
+  border-radius: 4px !important;
+  font: 600 11px 'Satoshi', sans-serif !important;
+  padding: 5px 12px !important;
+  cursor: pointer !important;
+}
+
+#root .revision-skill-card button.revision-card-btn-urgent:hover {
+  background: #39464e !important;
+}
+
+#root .revision-skill-card button.revision-card-btn-urgent span,
+#root .revision-skill-card button.revision-card-btn-urgent svg {
+  color: #ffffff !important;
+}
+
+#root .revision-skill-card button.revision-card-btn-review {
+  color: #26343d !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid #cbd0d1 !important;
+  border-radius: 4px !important;
+  font: 500 11px 'Satoshi', sans-serif !important;
+  padding: 5px 12px !important;
+  cursor: pointer !important;
+}
+
+#root .revision-skill-card button.revision-card-btn-review:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+.app-shell button[style*="background: #0F172A"],
+.app-shell button[style*="background: #0f172a"],
+.app-shell button[style*="background: rgb(15, 23, 42)"],
+.app-shell button[style*="background: #1E293B"],
+.app-shell button[style*="background: #1e293b"],
+.app-shell button[style*="background: rgb(30, 41, 59)"],
+.app-shell button[style*="background: #10212d"],
+.app-shell button[style*="background: rgb(16, 33, 45)"],
+.app-shell button[style*="background: #303a41"],
+.app-shell button[style*="background: rgb(48, 58, 65)"] {
+  color: #ffffff !important;
+}
+
+.app-shell button[style*="background: #0F172A"] span,
+.app-shell button[style*="background: #0f172a"] span,
+.app-shell button[style*="background: rgb(15, 23, 42)"] span,
+.app-shell button[style*="background: #1E293B"] span,
+.app-shell button[style*="background: #1e293b"] span,
+.app-shell button[style*="background: rgb(30, 41, 59)"] span,
+.app-shell button[style*="background: #10212d"] span,
+.app-shell button[style*="background: rgb(16, 33, 45)"] span,
+.app-shell button[style*="background: #303a41"] span,
+.app-shell button[style*="background: rgb(48, 58, 65)"] span {
+  color: #ffffff !important;
+}
+
+/* ==========================================================================
+   GLOBAL SATOSHI FONT ENFORCEMENT & INTERNAL BACK BUTTONS
+   ========================================================================== */
+html, body, #root, .app-shell, .app-workspace, .login-page, .landing-frame,
+button, input, textarea, select, h1, h2, h3, h4, h5, h6, p, span, small, strong, em, label {
+  font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Universal Internal Back Navigation Button */
+.page-back-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid #d1d5d5 !important;
+  background: #ffffff !important;
+  color: #34414a !important;
+  font-family: 'Satoshi', sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  line-height: 1 !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  margin-bottom: 16px !important;
+  width: fit-content !important;
+}
+
+.page-back-button:hover {
+  background: #f4f5f5 !important;
+  color: #17232c !important;
+  border-color: #b0b5b7 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07) !important;
+}
+
+.page-back-button:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+

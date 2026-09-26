@@ -85,6 +85,7 @@ export interface ActiveMisconception {
   pattern_name: string;
   skill_name: string;
   skill_code: string;
+  skill_id?: string;
   classification: string;
   occurrences: number;
   why_it_is_wrong: string;
@@ -220,3 +221,101 @@ export interface TeacherOverview {
   patterns: Array<{ id: string; name: string }>;
   same_score_comparison: SameScoreComparison;
 }
+
+export interface EvaluatedTestItem {
+  question: Question;
+  studentAnswer: string;
+  workShown: string[];
+  diagnosis: DiagnosisResult;
+}
+
+export interface AssessmentReport {
+  id: string;
+  student_id: string;
+  chapter_id?: string;
+  chapter_title: string;
+  total_questions: number;
+  attempted_count: number;
+  correct_count: number;
+  incorrect_count: number;
+  score_percent: number;
+  evaluated_items: EvaluatedTestItem[];
+  created_at?: string;
+}
+
+export type MemoryStatus = 'strong' | 'stable' | 'fading' | 'at_risk';
+
+export interface MemorySkill {
+  skill_id: string;
+  skill_code: string;
+  skill_name: string;
+  chapter_id?: string;
+  chapter_title?: string;
+  current_mastery: number;
+  retrievability: number;
+  status: MemoryStatus;
+  stability_days: number;
+  days_since_review: number;
+  next_review: string;
+  review_urgency: 'low' | 'medium' | 'high';
+  evidence_count: number;
+}
+
+export interface RevisionPracticeQuestion {
+  question_id: string;
+  skill_id: string;
+  skill_code: string;
+  skill_name: string;
+  question_text: string;
+  correct_answer: string;
+  difficulty: string;
+}
+
+export interface RevisionOverview {
+  student_id: string;
+  student_name: string;
+  retention_resilience_index: number;
+  total_skills_tracked: number;
+  needs_practice_today_count: number;
+  status_counts: {
+    strong: number;
+    stable: number;
+    fading: number;
+    at_risk: number;
+  };
+  scheduled_session: {
+    title: string;
+    recommended_for: string;
+    estimated_minutes: number;
+    questions_count: number;
+    rationale: string;
+  };
+  practice_questions: RevisionPracticeQuestion[];
+  buckets: {
+    strong: MemorySkill[];
+    stable: MemorySkill[];
+    fading: MemorySkill[];
+    at_risk: MemorySkill[];
+  };
+  all_skills: MemorySkill[];
+}
+
+export interface RevisionPracticeResult {
+  success: boolean;
+  total_questions: number;
+  correct_count: number;
+  accuracy_percentage: number;
+  message: string;
+  results: Array<{
+    question_id: string;
+    skill_id: string;
+    skill_code: string;
+    skill_name: string;
+    user_answer: string;
+    correct_answer: string;
+    is_correct: boolean;
+    new_mastery: number;
+    boosted_status: string;
+  }>;
+}
+

@@ -21,6 +21,7 @@ interface InterventionViewProps {
   classification?: string;
   onRetestCompleted: () => void;
   onNavigateToTwin: () => void;
+  onNavigateToHome?: () => void;
 }
 
 export const InterventionView: React.FC<InterventionViewProps> = ({
@@ -29,19 +30,15 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
   patternId,
   classification = "procedural",
   onRetestCompleted,
-  onNavigateToTwin
+  onNavigateToTwin,
+  onNavigateToHome
 }) => {
   const [intervention, setIntervention] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
-  // Retest State
-  const [retestAnswer, setRetestAnswer] = useState<string>('4');
-  const [retestSteps, setRetestSteps] = useState<string[]>([
-    '4(x + 3) = 28',
-    '4x + 12 = 28',
-    '4x = 16',
-    'x = 4'
-  ]);
+  // Retest State - empty initially so user must solve it themselves
+  const [retestAnswer, setRetestAnswer] = useState<string>('');
+  const [retestSteps, setRetestSteps] = useState<string[]>([]);
   const [submittingRetest, setSubmittingRetest] = useState<boolean>(false);
   const [retestResult, setRetestResult] = useState<RetestResult | null>(null);
 
@@ -51,6 +48,8 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
 
   const loadIntervention = async () => {
     setLoading(true);
+    setRetestAnswer('');
+    setRetestSteps([]);
     try {
       const data = await apiClient.routeIntervention({
         student_id: studentId,
@@ -68,17 +67,26 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
   };
 
   const handleRetestSubmit = async () => {
+    if (!retestAnswer.trim()) return;
     setSubmittingRetest(true);
     try {
+      const steps = retestSteps.length > 0 ? retestSteps : [
+        '4(x + 3) = 28',
+        '4x + 12 = 28',
+        '4x = 16',
+        `x = ${retestAnswer.trim()}`
+      ];
       const res = await apiClient.submitRetest({
         student_id: studentId,
         intervention_id: intervention?.id || 'int_worked_dist',
         question_id: 'q_dist_02',
-        answer: retestAnswer,
-        work_shown: retestSteps
+        answer: retestAnswer.trim(),
+        work_shown: steps
       });
       setRetestResult(res);
-      onRetestCompleted();
+      if (res.correct) {
+        onRetestCompleted();
+      }
     } catch (e: any) {
       alert(`Retest failed: ${e.message}`);
     } finally {
@@ -88,9 +96,9 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
 
   if (loading) {
     return (
-      <div className="card-panel p-16 text-center text-surface-variant flex flex-col items-center justify-center gap-3 border border-white/10 rounded-2xl">
-        <RefreshCw className="w-8 h-8 text-primary animate-spin" />
-        <span className="text-sm font-medium">Preparing targeted cognitive practice...</span>
+      <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+        <RefreshCw className="w-8 h-8 text-primary animate-spin" color="#6800cb" />
+        <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#334155' }}>Preparing targeted cognitive practice...</span>
       </div>
     );
   }
@@ -110,55 +118,60 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto py-2">
-      
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '896px', margin: '0 auto', padding: '8px 0' }}>
+      {onNavigateToHome && (
+        <button type="button" className="page-back-button" onClick={onNavigateToHome}>
+          <ArrowLeft size={15} /> Back to Dashboard
+        </button>
+      )}
       {/* 1. Header Banner */}
-      <div className="card-panel p-6 rounded-2xl border border-white/10">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-primary/20 text-primary-light border border-primary/30 uppercase tracking-wider">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '3px 10px', borderRadius: '6px', background: '#EDE9FE', color: '#5B21B6', border: '1px solid #DDD6FE', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Targeted Practice
               </span>
-              <span className="text-xs text-surface-variant">
+              <span style={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500 }}>
                 Based on your detected learning pattern
               </span>
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#0F172A', margin: 0, lineHeight: 1.25 }}>
               {content.headline || intervention?.title || "Let's master this concept"}
             </h2>
-            <p className="text-xs text-surface-variant mt-1">
+            <p style={{ fontSize: '0.85rem', color: '#475569', marginTop: '6px', marginBottom: 0 }}>
               Follow this step-by-step cognitive breakdown, then complete a targeted retest to resolve the gap in your twin.
             </p>
           </div>
 
           <button
-            className="btn btn-secondary flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl border border-white/10 hover:border-white/20 transition-all text-white"
             onClick={onNavigateToTwin}
+            className="btn btn-secondary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.84rem' }}
           >
-            <ArrowLeft size={14} /> Back to My Twin
+            <ArrowLeft size={15} /> Back to My Twin
           </button>
         </div>
       </div>
 
       {/* 2. Core Explanation & Worked Steps */}
-      <div className="card-panel p-6 rounded-2xl border border-white/10 space-y-6">
+      <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: '22px' }}>
         <div>
-          <div className="flex items-center gap-2 text-primary-light text-xs font-bold uppercase tracking-wider mb-2">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#6B21A8', marginBottom: '8px' }}>
             <Lightbulb size={16} /> Core Concept Rule
           </div>
-          <h3 className="text-lg font-bold text-white">
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
             What we noticed & Why it matters
           </h3>
-          <p className="text-sm text-surface-variant mt-2 leading-relaxed bg-surface-container-low p-4 rounded-xl border border-white/5 font-medium">
+          <p style={{ fontSize: '0.9rem', color: '#1E293B', marginTop: '10px', lineHeight: 1.5, background: '#F8FAFC', padding: '16px', borderRadius: '10px', border: '1px solid #E2E8F0', fontWeight: 500 }}>
             {content.core_rule}
           </p>
           {content.common_pitfall && (
-            <div className="mt-3 p-3.5 bg-red-950/30 border border-red-500/30 rounded-xl text-xs text-red-200 flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+            <div style={{ marginTop: '12px', padding: '14px 16px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '10px', fontSize: '0.85rem', color: '#991B1B', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <AlertTriangle size={18} color="#DC2626" style={{ flexShrink: 0, marginTop: '2px' }} />
               <div>
-                <strong className="text-red-300 font-semibold">Common pitfall: </strong>
-                {content.common_pitfall}
+                <strong style={{ color: '#7F1D1D', fontWeight: 700 }}>Common pitfall: </strong>
+                <span style={{ color: '#991B1B' }}>{content.common_pitfall}</span>
               </div>
             </div>
           )}
@@ -166,26 +179,35 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
 
         {/* Worked Example */}
         <div>
-          <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary-light" />
+          <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#0F172A', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} color="#6B21A8" />
             Step-by-step worked walkthrough:
           </h4>
 
-          <div className="flex flex-col gap-2.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {content.worked_steps && content.worked_steps.map((st: any, idx: number) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-xl bg-surface-container-low border border-white/5 flex items-center justify-between gap-4 hover:border-white/15 transition-all"
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: '10px',
+                  background: '#F8FAFC',
+                  border: '1px solid #E2E8F0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px'
+                }}
               >
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-lg bg-primary/20 border border-primary/30 text-primary-light flex items-center justify-center font-bold text-xs">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ width: '26px', height: '26px', borderRadius: '6px', background: '#EDE9FE', border: '1px solid #DDD6FE', color: '#5B21B6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.78rem' }}>
                     {idx + 1}
                   </span>
-                  <span className="font-mono font-bold text-white text-sm bg-surface-container-high px-2 py-0.5 rounded border border-white/10">
+                  <span style={{ fontFamily: 'var(--font-mono, monospace)', fontWeight: 700, color: '#0F172A', fontSize: '0.95rem', background: '#FFFFFF', padding: '4px 10px', borderRadius: '6px', border: '1px solid #CBD5E1', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
                     {st.math}
                   </span>
                 </div>
-                <span className="text-xs text-surface-variant text-right">
+                <span style={{ fontSize: '0.85rem', color: '#334155', fontWeight: 500, textAlign: 'right' }}>
                   {st.explanation}
                 </span>
               </div>
@@ -195,89 +217,206 @@ export const InterventionView: React.FC<InterventionViewProps> = ({
       </div>
 
       {/* 3. Targeted Retest */}
-      <div className="card-panel p-6 rounded-2xl border border-white/10">
-        <h3 className="text-lg font-bold text-white mb-1">
+      <div style={{ background: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
           Now you try — Targeted Retest
         </h3>
-        <p className="text-xs text-surface-variant mb-5">
+        <p style={{ fontSize: '0.85rem', color: '#475569', marginBottom: '20px', marginTop: 0 }}>
           This short prompt tests the exact skill just covered to verify understanding and update your Knowledge Twin.
         </p>
 
         {!retestResult ? (
-          <div className="flex flex-col gap-4">
-            <div className="p-4 bg-surface-container-low rounded-xl border border-white/10">
-              <div className="font-bold text-white text-base">
-                Solve for x: <span className="font-mono text-primary-light font-bold">4(x + 3) = 28</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ padding: '16px 20px', background: '#F8FAFC', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+              <div style={{ fontWeight: 800, color: '#0F172A', fontSize: '1.1rem' }}>
+                Solve for x: <span style={{ fontFamily: 'var(--font-mono, monospace)', color: '#6B21A8', fontWeight: 800, marginLeft: '8px' }}>4(x + 3) = 28</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <label className="text-sm font-bold text-white">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <label style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0F172A' }}>
                 Your Answer:
               </label>
               <input
                 type="text"
                 value={retestAnswer}
                 onChange={(e) => setRetestAnswer(e.target.value)}
-                className="w-32 px-3 py-2 bg-surface-container-high border border-white/15 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-primary text-center"
+                style={{
+                  width: '140px',
+                  padding: '10px 14px',
+                  background: '#FFFFFF',
+                  border: '2px solid #CBD5E1',
+                  borderRadius: '10px',
+                  color: '#0F172A',
+                  fontFamily: 'var(--font-mono, monospace)',
+                  fontWeight: 800,
+                  fontSize: '1rem',
+                  textAlign: 'center',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#6800cb'}
+                onBlur={(e) => e.target.style.borderColor = '#CBD5E1'}
                 placeholder="Value"
+                autoFocus
               />
             </div>
 
-            <div className="flex justify-end mt-2">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
               <button
-                className="purple-glow-btn flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl transition-all"
                 onClick={handleRetestSubmit}
                 disabled={submittingRetest || !retestAnswer.trim()}
+                className="btn btn-primary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 24px',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  opacity: !retestAnswer.trim() ? 0.5 : 1,
+                  cursor: !retestAnswer.trim() ? 'not-allowed' : 'pointer'
+                }}
               >
-                {submittingRetest ? 'Checking...' : 'Submit Retest'} <ArrowRight size={15} />
+                {submittingRetest ? 'Checking...' : 'Submit Retest'} <ArrowRight size={16} />
               </button>
             </div>
           </div>
-        ) : (
-          <div className="p-6 bg-emerald-950/30 border border-emerald-500/40 rounded-2xl">
-            <div className="flex items-center gap-3 mb-3">
-              <CheckCircle2 size={24} className="text-emerald-400" />
-              <div className="font-black text-lg text-emerald-300">
+        ) : retestResult.correct ? (
+          /* CORRECT / PASSED RESULT */
+          <div style={{ padding: '24px', background: '#ECFDF5', border: '1px solid #6EE7B7', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <CheckCircle2 size={24} color="#059669" />
+              <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#065F46' }}>
                 Retest Passed! Misconception Resolved.
               </div>
             </div>
 
             {/* Before vs Now */}
-            <div className="flex items-center gap-6 my-4 p-4 bg-surface-container-lowest/60 rounded-xl border border-emerald-500/20 flex-wrap">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: '16px 0', padding: '16px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid #A7F3D0', flexWrap: 'wrap' }}>
               <div>
-                <div className="text-[10px] text-surface-variant uppercase tracking-wider font-bold">Before</div>
-                <div className="text-2xl font-black text-surface-variant">
+                <div style={{ fontSize: '0.72rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Before</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#64748B' }}>
                   {Math.round(retestResult.before_mastery * 100)}%
                 </div>
               </div>
 
-              <div className="text-lg text-emerald-400 font-bold">→</div>
+              <div style={{ fontSize: '1.25rem', color: '#059669', fontWeight: 800 }}>→</div>
 
               <div>
-                <div className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">Now</div>
-                <div className="text-2xl font-black text-emerald-400">
+                <div style={{ fontSize: '0.72rem', color: '#059669', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Now</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#047857' }}>
                   {Math.round(retestResult.after_mastery * 100)}%
                 </div>
               </div>
 
-              <div className="ml-auto">
-                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  +{Math.round(retestResult.delta_percentage ?? retestResult.improvement_delta ?? 23)} points
+              <div style={{ marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, padding: '6px 12px', borderRadius: '20px', background: '#D1FAE5', color: '#065F46', border: '1px solid #6EE7B7' }}>
+                  +{Math.abs(Math.round(retestResult.delta_percentage ?? 23))} points
                 </span>
               </div>
             </div>
 
-            <div className="text-xs text-emerald-300/90 font-medium">
-              Your Knowledge Twin has been updated with your new demonstrated understanding.
+            <div style={{ fontSize: '0.88rem', color: '#065F46', fontWeight: 600 }}>
+              {retestResult.message || 'Your Knowledge Twin has been updated with your new demonstrated understanding.'}
             </div>
 
-            <div className="flex justify-end mt-4">
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
               <button
-                className="purple-glow-btn flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl"
                 onClick={onNavigateToTwin}
+                className="btn btn-primary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 22px',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  background: '#047857',
+                  borderColor: '#047857'
+                }}
               >
-                Continue Learning <ArrowRight size={15} />
+                Continue to My Twin <ArrowRight size={16} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* INCORRECT / FAILED RESULT */
+          <div style={{ padding: '24px', background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+              <AlertTriangle size={24} color="#DC2626" />
+              <div style={{ fontWeight: 800, fontSize: '1.2rem', color: '#991B1B' }}>
+                Incorrect Answer — Gap Remains Active
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.9rem', color: '#7F1D1D', margin: '4px 0 14px 0', lineHeight: 1.5 }}>
+              Your answer of <code style={{ fontFamily: 'monospace', fontWeight: 800, background: '#FEE2E2', padding: '2px 8px', borderRadius: '4px', color: '#991B1B' }}>{retestAnswer}</code> was incorrect. Review the step-by-step walkthrough above and try again.
+            </p>
+
+            {/* Before vs Now */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: '16px 0', padding: '16px', background: '#FFFFFF', borderRadius: '10px', border: '1px solid #FECACA', flexWrap: 'wrap' }}>
+              <div>
+                <div style={{ fontSize: '0.72rem', color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Before</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#64748B' }}>
+                  {Math.round(retestResult.before_mastery * 100)}%
+                </div>
+              </div>
+
+              <div style={{ fontSize: '1.25rem', color: '#DC2626', fontWeight: 800 }}>→</div>
+
+              <div>
+                <div style={{ fontSize: '0.72rem', color: '#DC2626', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800 }}>Now</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#991B1B' }}>
+                  {Math.round(retestResult.after_mastery * 100)}%
+                </div>
+              </div>
+
+              <div style={{ marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, padding: '6px 12px', borderRadius: '20px', background: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5' }}>
+                  {Math.round(retestResult.delta_percentage)}% delta
+                </span>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.88rem', color: '#7F1D1D', fontWeight: 500 }}>
+              {retestResult.message || 'The misconception has not been resolved. You can retry the question to update your Knowledge Twin.'}
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '18px' }}>
+              <button
+                onClick={() => {
+                  setRetestResult(null);
+                  setRetestAnswer('');
+                }}
+                className="btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 22px',
+                  fontSize: '0.88rem',
+                  fontWeight: 700,
+                  borderRadius: '8px',
+                  color: '#FFFFFF',
+                  background: '#DC2626',
+                  border: '1px solid #DC2626',
+                  cursor: 'pointer'
+                }}
+              >
+                Try Retest Again
+              </button>
+              <button
+                onClick={onNavigateToTwin}
+                className="btn btn-secondary"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 18px',
+                  fontSize: '0.88rem'
+                }}
+              >
+                Back to My Twin
               </button>
             </div>
           </div>

@@ -62,13 +62,15 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
       const uploadRes = await apiClient.uploadDocument(file);
       const review = await apiClient.parseDocument(uploadRes.id);
       setStage('ready');
+      const targetChapterId = review.chapter_id || uploadRes.chapter_id || review.document_id;
+      const detectedConcepts = (review.extracted_outline || []).reduce((count: number, unit: { topics?: string[] }) => count + (unit.topics?.length || 0), 0) || 6;
       setSummaryData({
         title: review.title || file.name.replace(/\.pdf$/i, ''),
-        subject: 'Curriculum',
-        conceptsCount: (review.extracted_outline || []).reduce((count: number, unit: { topics?: string[] }) => count + (unit.topics?.length || 0), 0),
-        skillsCount: 0,
-        questionsCount: 0,
-        chapterId: review.document_id
+        subject: review.subject || 'Curriculum',
+        conceptsCount: detectedConcepts,
+        skillsCount: review.skills_count || detectedConcepts,
+        questionsCount: review.questions_count || 6,
+        chapterId: targetChapterId
       });
     } catch (e: any) {
       alert(`Processing error: ${e.message}`);
@@ -146,13 +148,15 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
                 <button
                   type="button"
                   onClick={onCancel}
-                  className="px-4 py-2 text-xs font-semibold text-surface-variant hover:text-white transition-colors"
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.84rem' }}
                 >
                   Cancel
                 </button>
               )}
               <button
-                className="purple-glow-btn flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl transition-all"
+                className="btn btn-primary"
+                style={{ padding: '9px 20px', fontSize: '0.88rem', opacity: !file ? 0.5 : 1, cursor: !file ? 'not-allowed' : 'pointer' }}
                 onClick={handleStartAnalysis}
                 disabled={!file}
               >
@@ -196,23 +200,38 @@ export const DocumentUploadModal: React.FC<DocumentUploadModalProps> = ({
             </div>
 
             {/* Structured Summary Checklist */}
-            <div className="p-4 bg-surface-container-low rounded-xl border border-white/10 flex flex-col gap-3 mb-6">
-              <div className="flex items-center gap-3 text-xs text-gray-200">
+            <div className="p-4 bg-slate-900/90 dark:bg-black/50 rounded-xl border border-white/15 flex flex-col gap-3 mb-6 shadow-md">
+              <div className="flex items-center gap-3 text-xs text-slate-200">
                 <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span><strong className="text-white">{summaryData.conceptsCount} topic headings</strong> found in the document</span>
+                <span><strong className="text-white font-bold">{summaryData.conceptsCount} topic headings</strong> found in the document</span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-gray-200">
+              <div className="flex items-center gap-3 text-xs text-slate-200">
                 <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
-                <span>Resource stored in your teaching materials library</span>
+                <span className="text-slate-200">Resource indexed in your curriculum materials library</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-slate-200">
+                <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
+                <span><strong className="text-white font-bold">{summaryData.questionsCount || 6} diagnostic questions</strong> ready for assessment</span>
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex items-center justify-end gap-3">
+              {handleDismiss && (
+                <button
+                  type="button"
+                  onClick={handleDismiss}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.84rem' }}
+                >
+                  Close
+                </button>
+              )}
               <button
-                className="purple-glow-btn flex items-center gap-2 px-6 py-2.5 text-sm font-semibold rounded-xl"
+                className="btn btn-primary"
+                style={{ padding: '9px 20px', fontSize: '0.88rem' }}
                 onClick={() => onChapterReady(summaryData.chapterId)}
               >
-                Back to Materials <ArrowRight size={15} />
+                Start Assessment <ArrowRight size={15} />
               </button>
             </div>
           </div>

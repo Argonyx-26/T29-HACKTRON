@@ -818,6 +818,13 @@ def seed_database(force_reset: bool = False, include_demo_cohort: bool = None):
             print("Resetting local SQLite database...")
             Base.metadata.drop_all(bind=engine)
             Base.metadata.create_all(bind=engine)
+            from app.database import reset_test_student_dbs, reset_student_db
+            reset_test_student_dbs()
+            for s_id in ["student_a", "student_b", "student_c", "student_d", "student_e"]:
+                try:
+                    reset_student_db(s_id)
+                except Exception:
+                    pass
 
         # 1. Seed legitimate curriculum records
         existing_chapter = db.query(Chapter).filter(Chapter.id == "chap_linear_eq").first()
@@ -829,6 +836,12 @@ def seed_database(force_reset: bool = False, include_demo_cohort: bool = None):
             existing_student = db.query(Student).filter(Student.id == "student_a").first()
             if not existing_student or force_reset:
                 seed_demo_cohort(db)
+                from app.database import sync_student_from_shared
+                for s_id in ["student_a", "student_b", "student_c", "student_d", "student_e"]:
+                    try:
+                        sync_student_from_shared(s_id, db)
+                    except Exception:
+                        pass
 
         db.commit()
     except Exception as e:

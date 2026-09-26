@@ -55,7 +55,8 @@ class MasteryService:
         student_id: str,
         skill_id: str,
         is_correct: bool,
-        event_name: str = "assessment"
+        event_name: str = "assessment",
+        shared_db: Optional[Session] = None
     ) -> MasteryState:
         """
         Updates student mastery using BKT and checks for emerging gaps.
@@ -109,65 +110,82 @@ class MasteryService:
         db.commit()
         db.refresh(state)
 
-        # Check for Emerging Gaps
-        MasteryService.check_and_update_emerging_gaps(db, student_id, skill_id)
+        # Check for Emerging Gaps (uses shared curriculum DB for skills lookup)
+        MasteryService.check_and_update_emerging_gaps(db, student_id, skill_id, shared_db)
         
         return state
 
     @staticmethod
-    def check_and_update_emerging_gaps(db: Session, student_id: str, skill_id: str):
+    def check_and_update_emerging_gaps(
+        db: Session,
+        student_id: str,
+        skill_id: str,
+        shared_db: Optional[Session] = None
+    ):
         """
         Proactively detects emerging gaps:
         Prerequisite weakness + Repeated misconception = Emerging Gap warning.
+        Uses shared_db (curriculum) for Skill lookup and db (student_db) for learner data.
         """
-        target_skill = db.query(Skill).filter(Skill.id == skill_id).first()
-        if not target_skill or not target_skill.prerequisite_skill_ids:
-            return
+        curr_db = shared_db
+        close_curr = False
+        if curr_db is None:
+            from app.database import SessionLocal
+            curr_db = SessionLocal()
+            close_curr = True
 
-        # Check prerequisite skill masteries
-        prereq_weakness = False
-        weak_prereq_name = ""
-        for prereq_code in target_skill.prerequisite_skill_ids:
-            prereq_skill = db.query(Skill).filter(Skill.code == prereq_code).first()
-            if prereq_skill:
-                prereq_state = db.query(MasteryState).filter(
-                    MasteryState.student_id == student_id,
-                    MasteryState.skill_id == prereq_skill.id
-                ).first()
-                if not prereq_state or prereq_state.mastery_probability < 0.50:
-                    prereq_weakness = True
-                    weak_prereq_name = prereq_skill.name
-                    break
+        try:
+            target_skill = curr_db.query(Skill).filter(Skill.id == skill_id).first()
+            if not target_skill or not target_skill.prerequisite_skill_ids:
+                return
 
-        # Check if student has active misconceptions in target skill
-        active_misconceptions = db.query(StudentMisconceptionInstance).filter(
-            StudentMisconceptionInstance.student_id == student_id,
-            StudentMisconceptionInstance.skill_id == skill_id,
-            StudentMisconceptionInstance.status == "active"
-        ).all()
+            # Check prerequisite skill masteries in student's private DB
+            prereq_weakness = False
+            weak_prereq_name = ""
+            for prereq_code in target_skill.prerequisite_skill_ids:
+                prereq_skill = curr_db.query(Skill).filter(Skill.code == prereq_code).first()
+                if prereq_skill:
+                    prereq_state = db.query(MasteryState).filter(
+                        MasteryState.student_id == student_id,
+                        MasteryState.skill_id == prereq_skill.id
+                    ).first()
+                    if not prereq_state or prereq_state.mastery_probability < 0.50:
+                        prereq_weakness = True
+                        weak_prereq_name = prereq_skill.name
+                        break
 
-        gap_record = db.query(EmergingGap).filter(
-            EmergingGap.student_id == student_id,
-            EmergingGap.skill_id == skill_id,
-            EmergingGap.status == "active"
-        ).first()
+            # Check if student has active misconceptions in target skill
+            active_misconceptions = db.query(StudentMisconceptionInstance).filter(
+                StudentMisconceptionInstance.student_id == student_id,
+                StudentMisconceptionInstance.skill_id == skill_id,
+                StudentMisconceptionInstance.status == "active"
+            ).all()
 
-        if prereq_weakness and len(active_misconceptions) >= 1:
-            if not gap_record:
-                gap = EmergingGap(
-                    id=f"gap_{student_id}_{skill_id}",
-                    student_id=student_id,
-                    skill_id=skill_id,
-                    title=f"Prerequisite Fragility in {target_skill.name}",
-                    description=f"Weak mastery in foundational skill '{weak_prereq_name}' is actively impairing progress in {target_skill.name}.",
-                    risk_level="high" if len(active_misconceptions) > 1 else "moderate",
-                    trigger_reason=f"Prerequisite {weak_prereq_name} < 50% combined with recurring misconception.",
-                    detected_at=datetime.datetime.utcnow(),
-                    status="active"
-                )
-                db.add(gap)
+            gap_record = db.query(EmergingGap).filter(
+                EmergingGap.student_id == student_id,
+                EmergingGap.skill_id == skill_id,
+                EmergingGap.status == "active"
+            ).first()
+
+            if prereq_weakness and len(active_misconceptions) >= 1:
+                if not gap_record:
+                    gap = EmergingGap(
+                        id=f"gap_{student_id}_{skill_id}",
+                        student_id=student_id,
+                        skill_id=skill_id,
+                        title=f"Prerequisite Fragility in {target_skill.name}",
+                        description=f"Weak mastery in foundational skill '{weak_prereq_name}' is actively impairing progress in {target_skill.name}.",
+                        risk_level="high" if len(active_misconceptions) > 1 else "moderate",
+                        trigger_reason=f"Prerequisite {weak_prereq_name} < 50% combined with recurring misconception.",
+                        detected_at=datetime.datetime.utcnow(),
+                        status="active"
+                    )
+                    db.add(gap)
+                    db.commit()
+            elif gap_record and not prereq_weakness:
+                # Resolved
+                gap_record.status = "mitigated"
                 db.commit()
-        elif gap_record and not prereq_weakness:
-            # Resolved
-            gap_record.status = "mitigated"
-            db.commit()
+        finally:
+            if close_curr:
+                curr_db.close()

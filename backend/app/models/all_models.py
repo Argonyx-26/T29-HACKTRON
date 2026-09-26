@@ -129,6 +129,24 @@ class Assessment(Base):
     total_questions = Column(Integer, default=6)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+class AssessmentReport(Base):
+    __tablename__ = "assessment_reports"
+    
+    id = Column(String, primary_key=True, index=True)
+    student_id = Column(String, ForeignKey("students.id"), nullable=False, index=True)
+    chapter_id = Column(String, ForeignKey("chapters.id"), nullable=True)
+    chapter_title = Column(String, nullable=False)
+    total_questions = Column(Integer, default=0)
+    attempted_count = Column(Integer, default=0)
+    correct_count = Column(Integer, default=0)
+    incorrect_count = Column(Integer, default=0)
+    score_percent = Column(Integer, default=0)
+    evaluated_items = Column(JSON, default=list) # [{ question, studentAnswer, workShown, diagnosis }]
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    
+    student = relationship("Student")
+    chapter = relationship("Chapter")
+
 class Attempt(Base):
     __tablename__ = "attempts"
     
