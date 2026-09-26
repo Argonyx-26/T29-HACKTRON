@@ -283,20 +283,91 @@ def _handle_save_report(report_in: AssessmentReportCreate, student_db: Session) 
 
 
 def _handle_get_reports(student_id: str, shared_db: Session, student_db: Session) -> List[AssessmentReportResponse]:
-    reports = student_db.query(AssessmentReport).filter(
-        AssessmentReport.student_id == student_id
-    ).order_by(AssessmentReport.created_at.desc()).all()
+    from sqlalchemy import func
+    from app.database import get_student_db
+
+    clean_sid = (student_id or "").strip()
+    target_ids = {clean_sid} if clean_sid else set()
+
+    # Discover all aliases / accounts matching this student by ID, email, or name
+    st = None
+    if clean_sid:
+        st = shared_db.query(Student).filter(Student.id == clean_sid).first()
+        if not st:
+            st = shared_db.query(Student).filter(func.lower(Student.name) == clean_sid.lower()).first()
+
+    if st:
+        target_ids.add(st.id)
+        if st.name:
+            for s in shared_db.query(Student).filter(func.lower(Student.name) == st.name.lower()).all():
+                target_ids.add(s.id)
+        if st.email:
+            for s in shared_db.query(Student).filter(func.lower(Student.email) == st.email.lower()).all():
+                target_ids.add(s.id)
+
+    # 1. First check persisted AssessmentReport records
+    reports: List[AssessmentReport] = []
+    seen_report_ids = set()
+
+    # From student's own DB
+    for r in student_db.query(AssessmentReport).all():
+        if r.id not in seen_report_ids:
+            seen_report_ids.add(r.id)
+            reports.append(r)
+
+    # From shared DB for matching student IDs
+    if target_ids:
+        for r in shared_db.query(AssessmentReport).filter(AssessmentReport.student_id.in_(target_ids)).all():
+            if r.id not in seen_report_ids:
+                seen_report_ids.add(r.id)
+                reports.append(r)
+
+    # From related student DBs if multiple IDs exist
+    for tid in target_ids:
+        if tid != clean_sid:
+            try:
+                sdb = get_student_db(tid)
+                for r in sdb.query(AssessmentReport).all():
+                    if r.id not in seen_report_ids:
+                        seen_report_ids.add(r.id)
+                        reports.append(r)
+                sdb.close()
+            except Exception:
+                pass
 
     if reports:
+        reports.sort(key=lambda x: str(x.created_at or ""), reverse=True)
         return reports
 
-    # Fallback: synthesise from attempts in student DB
-    attempts = student_db.query(Attempt).filter(
-        Attempt.student_id == student_id
-    ).order_by(Attempt.created_at.desc()).all()
+    # 2. Fallback: synthesise reports from attempts in student DB and shared DB
+    attempts_map = {}
 
+    # All attempts in primary student DB
+    for a in student_db.query(Attempt).all():
+        attempts_map[a.id] = a
+
+    # All attempts in shared DB matching target_ids
+    if target_ids:
+        for a in shared_db.query(Attempt).filter(Attempt.student_id.in_(target_ids)).all():
+            attempts_map[a.id] = a
+
+    # From related student DBs
+    for tid in target_ids:
+        if tid != clean_sid:
+            try:
+                sdb = get_student_db(tid)
+                for a in sdb.query(Attempt).all():
+                    attempts_map[a.id] = a
+                sdb.close()
+            except Exception:
+                pass
+
+    attempts = list(attempts_map.values())
     if not attempts:
         return []
+
+    # Sort newest first
+    attempts.sort(key=lambda a: a.created_at or datetime.min, reverse=True)
 
     grouped: Dict[str, List[Attempt]] = {}
     for a in attempts:
@@ -319,7 +390,6 @@ def _handle_get_reports(student_id: str, shared_db: Session, student_db: Session
         chap_title = "Diagnostic Assessment"
         chap_id = None
         if first_q:
-            chap = shared_db.query(Question).filter(Question.id == first_q.id).first()
             if first_q.chapter_id:
                 from app.models.all_models import Chapter
                 chapter = shared_db.query(Chapter).filter(Chapter.id == first_q.chapter_id).first()

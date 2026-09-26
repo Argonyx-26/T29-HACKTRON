@@ -543,23 +543,26 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '16px 20px',
-                          borderRadius: '12px',
-                          background: 'rgba(255, 255, 255, 0.03)',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '10px',
+                          background: '#ffffff',
+                          border: '1px solid #cbd5e1',
                           cursor: 'pointer',
-                          transition: 'all 0.2s ease',
+                          transition: 'all 0.15s ease',
                           gap: '16px',
-                          flexWrap: 'wrap'
+                          flexWrap: 'wrap',
+                          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(147, 51, 234, 0.1)';
-                          e.currentTarget.style.borderColor = 'rgba(147, 51, 234, 0.4)';
+                          e.currentTarget.style.background = '#f8fafc';
+                          e.currentTarget.style.borderColor = '#94a3b8';
                           e.currentTarget.style.transform = 'translateY(-1px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.08)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.03)';
-                          e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                          e.currentTarget.style.background = '#ffffff';
+                          e.currentTarget.style.borderColor = '#cbd5e1';
                           e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 300px' }}>
@@ -572,17 +575,17 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                               alignItems: 'center',
                               justifyContent: 'center',
                               background: isPassed
-                                ? 'rgba(16, 185, 129, 0.15)'
+                                ? 'rgba(16, 185, 129, 0.12)'
                                 : isBorderline
-                                ? 'rgba(245, 158, 11, 0.15)'
-                                : 'rgba(239, 68, 68, 0.15)',
-                              color: isPassed ? '#4edea3' : isBorderline ? '#fbbf24' : '#ffb4ab',
+                                ? 'rgba(245, 158, 11, 0.12)'
+                                : 'rgba(239, 68, 68, 0.12)',
+                              color: isPassed ? '#059669' : isBorderline ? '#d97706' : '#dc2626',
                               border: `1px solid ${
                                 isPassed
-                                  ? 'rgba(78, 222, 163, 0.3)'
+                                  ? 'rgba(16, 185, 129, 0.3)'
                                   : isBorderline
                                   ? 'rgba(245, 158, 11, 0.3)'
-                                  : 'rgba(255, 180, 171, 0.3)'
+                                  : 'rgba(239, 68, 68, 0.3)'
                               }`
                             }}
                           >
@@ -590,7 +593,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           </span>
 
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            <strong style={{ fontSize: '0.98rem', color: '#FFFFFF', fontWeight: 700 }}>
+                            <strong style={{ fontSize: '0.98rem', color: '#0f172a', fontWeight: 700 }}>
                               {rep.chapter_title}
                             </strong>
                             <div
@@ -600,20 +603,20 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                                 gap: '10px',
                                 flexWrap: 'wrap',
                                 fontSize: '0.78rem',
-                                color: '#9496a8'
+                                color: '#475569'
                               }}
                             >
                               <span>{dateStr}</span>
                               <span>•</span>
-                              <span style={{ color: '#d7baff' }}>{rep.total_questions} Questions</span>
+                              <span style={{ color: '#334155', fontWeight: 600 }}>{rep.total_questions} Questions</span>
                               <span>•</span>
-                              <span style={{ color: '#cdc2d7' }}>{rep.attempted_count} Attempted</span>
+                              <span style={{ color: '#334155' }}>{rep.attempted_count} Attempted</span>
                               <span>•</span>
-                              <span style={{ color: '#4edea3' }}>{rep.correct_count} Correct</span>
+                              <span style={{ color: '#059669', fontWeight: 600 }}>{rep.correct_count} Correct</span>
                               {rep.incorrect_count > 0 && (
                                 <>
                                   <span>•</span>
-                                  <span style={{ color: '#ffb4ab' }}>{rep.incorrect_count} Incorrect</span>
+                                  <span style={{ color: '#dc2626' }}>{rep.incorrect_count} Incorrect</span>
                                 </>
                               )}
                             </div>

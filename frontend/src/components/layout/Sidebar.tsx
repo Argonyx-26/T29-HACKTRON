@@ -93,48 +93,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`sidebar-nav-button${isActive ? ' is-active purple-glow-btn' : ''}`}
+                className={`sidebar-nav-button${isActive ? ' is-active' : ''}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '12px',
                   width: '100%',
-                  padding: '11px 16px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: isActive ? '#6800cb' : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#9e9da8',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  border: isActive ? '1px solid #283742' : '1px solid transparent',
+                  background: isActive ? '#283742' : 'transparent',
+                  color: isActive ? '#ffffff' : '#1e293b',
                   fontWeight: isActive ? 700 : 500,
-                  fontSize: '0.9rem',
+                  fontSize: '0.90rem',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.2s ease',
-                  letterSpacing: '0.01em'
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#FFFFFF';
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.color = '#9e9da8';
-                    e.currentTarget.style.background = 'transparent';
-                  }
+                  transition: 'all 0.15s ease',
+                  letterSpacing: '0.01em',
+                  boxShadow: isActive ? '0 1px 3px rgba(15, 23, 42, 0.18)' : 'none'
                 }}
               >
-                <Icon size={19} color={isActive ? '#FFFFFF' : '#727082'} />
-                <span style={{ flex: 1, color: isActive ? '#FFFFFF' : 'inherit', fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
+                <Icon size={19} style={{ color: isActive ? '#ffffff' : '#475569', flexShrink: 0 }} />
+                <span style={{ flex: 1, color: isActive ? '#ffffff' : '#1e293b', fontWeight: isActive ? 700 : 500 }}>
+                  {item.label}
+                </span>
                 {item.id === 'revision' && (
                   <span style={{
                     fontSize: '0.64rem',
                     fontWeight: 800,
                     padding: '2px 7px',
                     borderRadius: '8px',
-                    background: isActive ? '#FFFFFF' : 'rgba(245, 158, 11, 0.15)',
-                    color: isActive ? '#10212d' : '#FBBF24',
-                    border: isActive ? 'none' : '1px solid rgba(245, 158, 11, 0.35)',
+                    background: isActive ? '#fef3c7' : 'rgba(245, 158, 11, 0.15)',
+                    color: isActive ? '#92400e' : '#b45309',
+                    border: isActive ? '1px solid #fde68a' : '1px solid rgba(245, 158, 11, 0.35)',
                     letterSpacing: '0.04em',
                     textTransform: 'uppercase'
                   }}>

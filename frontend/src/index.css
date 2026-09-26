@@ -7228,8 +7228,8 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
 #root .student-home-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
 #root .student-home-sidebar .sidebar-nav-button svg { color: #293943 !important; }
 #root .student-home-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
-#root .student-home-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
-#root .student-home-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-home-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #283742 !important; border: 1px solid #283742 !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(15,23,42,.18) !important; }
+#root .student-home-sidebar .sidebar-nav-button.is-active svg, #root .student-home-sidebar .sidebar-nav-button.is-active span { color: #fff !important; }
 #root .student-home-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
 #root .student-home-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
 #root .student-home-sidebar .app-sidebar-footer svg { color: #34414a !important; }
@@ -7343,8 +7343,8 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
 #root .student-learn-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
 #root .student-learn-sidebar .sidebar-nav-button svg { color: #293943 !important; }
 #root .student-learn-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
-#root .student-learn-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
-#root .student-learn-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-learn-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #283742 !important; border: 1px solid #283742 !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(15,23,42,.18) !important; }
+#root .student-learn-sidebar .sidebar-nav-button.is-active svg, #root .student-learn-sidebar .sidebar-nav-button.is-active span { color: #fff !important; }
 #root .student-learn-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
 #root .student-learn-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
 #root .student-learn-sidebar .app-sidebar-footer svg { color: #34414a !important; }
@@ -7508,8 +7508,8 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
 #root .student-assess-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
 #root .student-assess-sidebar .sidebar-nav-button svg { color: #293943 !important; }
 #root .student-assess-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
-#root .student-assess-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
-#root .student-assess-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-assess-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #283742 !important; border: 1px solid #283742 !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(15,23,42,.18) !important; }
+#root .student-assess-sidebar .sidebar-nav-button.is-active svg, #root .student-assess-sidebar .sidebar-nav-button.is-active span { color: #fff !important; }
 #root .student-assess-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
 #root .student-assess-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
 #root .student-assess-sidebar .app-sidebar-footer svg { color: #34414a !important; }
@@ -7644,8 +7644,8 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
 #root .student-twin-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
 #root .student-twin-sidebar .sidebar-nav-button svg { color: #293943 !important; }
 #root .student-twin-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
-#root .student-twin-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
-#root .student-twin-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-twin-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #283742 !important; border: 1px solid #283742 !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(15,23,42,.18) !important; }
+#root .student-twin-sidebar .sidebar-nav-button.is-active svg, #root .student-twin-sidebar .sidebar-nav-button.is-active span { color: #fff !important; }
 #root .student-twin-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
 #root .student-twin-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
 #root .student-twin-sidebar .app-sidebar-footer svg { color: #34414a !important; }
@@ -7730,8 +7730,8 @@ body :is(h1, h2, h3, h4, h5, h6, p, a, button, label, span:not(.material-symbols
 #root .student-progress-sidebar .sidebar-nav-button { color: #34414a !important; background: transparent !important; border-radius: 6px !important; box-shadow: none !important; font-family: 'Satoshi', sans-serif !important; }
 #root .student-progress-sidebar .sidebar-nav-button svg { color: #293943 !important; }
 #root .student-progress-sidebar .sidebar-nav-button:hover:not(.is-active) { color: #17232c !important; background: rgba(23,35,44,.05) !important; }
-#root .student-progress-sidebar .sidebar-nav-button.is-active { color: #17232c !important; background: rgba(255,255,255,.5) !important; border: 1px solid #c6cbcd !important; border-radius: 6px !important; box-shadow: none !important; }
-#root .student-progress-sidebar .sidebar-nav-button.is-active svg { color: #17232c !important; }
+#root .student-progress-sidebar .sidebar-nav-button.is-active { color: #fff !important; background: #283742 !important; border: 1px solid #283742 !important; border-radius: 8px !important; box-shadow: 0 1px 3px rgba(15,23,42,.18) !important; }
+#root .student-progress-sidebar .sidebar-nav-button.is-active svg, #root .student-progress-sidebar .sidebar-nav-button.is-active span { color: #fff !important; }
 #root .student-progress-sidebar .app-sidebar-footer button { color: #34414a !important; background: transparent !important; box-shadow: none !important; }
 #root .student-progress-sidebar .app-sidebar-footer button:hover { background: rgba(23,35,44,.05) !important; }
 #root .student-progress-sidebar .app-sidebar-footer svg { color: #34414a !important; }
@@ -8218,19 +8218,16 @@ button.btn-secondary:hover {
 }
 
 #root .student-revision-sidebar .sidebar-nav-button.is-active {
-  color: #17232c !important;
-  background: rgba(255,255,255,.5) !important;
-  border: 1px solid #c6cbcd !important;
-  border-radius: 6px !important;
-  box-shadow: none !important;
+  color: #fff !important;
+  background: #283742 !important;
+  border: 1px solid #283742 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,.18) !important;
 }
 
-#root .student-revision-sidebar .sidebar-nav-button.is-active svg {
-  color: #17232c !important;
-}
-
+#root .student-revision-sidebar .sidebar-nav-button.is-active svg,
 #root .student-revision-sidebar .sidebar-nav-button.is-active span {
-  color: #17232c !important;
+  color: #fff !important;
 }
 
 #root .student-revision-sidebar .app-sidebar-footer button {
@@ -8636,4 +8633,98 @@ button, input, textarea, select, h1, h2, h3, h4, h5, h6, p, span, small, strong,
 .page-back-button:active {
   transform: translateY(0) scale(0.98) !important;
 }
+
+/* ==========================================================================
+   UNIVERSAL SIDEBAR NAVIGATION BUTTON RULES (HIGH PRIORITY)
+   Enforces solid dark pill (#283742) with bright white text & icon when active,
+   and clean dark slate text on transparent background when inactive.
+   ========================================================================== */
+#root .app-sidebar .sidebar-nav-button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  font-family: 'Satoshi', sans-serif !important;
+  font-size: 0.90rem !important;
+  letter-spacing: 0.01em !important;
+  cursor: pointer !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Inactive button state */
+#root .app-sidebar .sidebar-nav-button:not(.is-active) {
+  color: #334155 !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+#root .app-sidebar .sidebar-nav-button:not(.is-active) span {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+
+#root .app-sidebar .sidebar-nav-button:not(.is-active) svg {
+  color: #475569 !important;
+}
+
+/* Inactive hover state */
+#root .app-sidebar .sidebar-nav-button:not(.is-active):hover {
+  color: #0f172a !important;
+  background-color: rgba(23, 35, 44, 0.06) !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+}
+
+#root .app-sidebar .sidebar-nav-button:not(.is-active):hover span {
+  color: #0f172a !important;
+}
+
+#root .app-sidebar .sidebar-nav-button:not(.is-active):hover svg {
+  color: #0f172a !important;
+}
+
+/* Active button state - High Contrast Dark Charcoal Pill */
+#root .app-sidebar .sidebar-nav-button.is-active,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active {
+  color: #ffffff !important;
+  background-color: #283742 !important;
+  background-image: none !important;
+  border: 1px solid #283742 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.22) !important;
+  opacity: 1 !important;
+}
+
+#root .app-sidebar .sidebar-nav-button.is-active span,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+#root .app-sidebar .sidebar-nav-button.is-active svg,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active svg {
+  color: #ffffff !important;
+}
+
+#root .app-sidebar .sidebar-nav-button.is-active:hover,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active:hover {
+  background-color: #1f2c35 !important;
+  background-image: none !important;
+  border-color: #1f2c35 !important;
+  color: #ffffff !important;
+}
+
+#root .app-sidebar .sidebar-nav-button.is-active:hover span,
+#root .app-sidebar .sidebar-nav-button.is-active:hover svg,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active:hover span,
+#root [class*="-sidebar"] .sidebar-nav-button.is-active:hover svg {
+  color: #ffffff !important;
+}
+
 
