@@ -20,16 +20,20 @@ def list_chapters(db: Session = Depends(get_db), student_id: Optional[str] = Non
     chapters = query.all()
     results = []
     for c in chapters:
-        skills_count = db.query(Skill).filter(Skill.chapter_id == c.id).count()
+        skills = db.query(Skill).filter(Skill.chapter_id == c.id).order_by(Skill.order).all()
         questions_count = db.query(Question).filter(Question.chapter_id == c.id).count()
+        subj = c.subject or "General"
+        subj_id = subj.lower().replace(" ", "_")
         results.append({
             "id": c.id,
             "title": c.title,
             "subject": c.subject,
+            "subject_id": subj_id,
+            "topics": [{"id": s.id, "title": s.name} for s in skills],
             "description": c.description,
             "source_type": c.source_type,
             "source_document_id": c.source_document_id,
-            "skills_count": skills_count,
+            "skills_count": len(skills),
             "questions_count": questions_count,
             "created_at": c.created_at.isoformat() if c.created_at else None
         })

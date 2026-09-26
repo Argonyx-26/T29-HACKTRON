@@ -688,3 +688,189 @@ class AnalyticsService:
 
         activities.sort(key=lambda x: x["timestamp"], reverse=True)
         return activities
+
+    @staticmethod
+    def get_teacher_cohort(db: Session) -> List[Dict[str, Any]]:
+        """
+        Retrieves cohort summary for teacher dashboard.
+        Returns list of students with calculated overall mastery, risk status, and active interventions.
+        """
+        students = db.query(Student).all()
+        cohort = []
+        for s in students:
+            states = db.query(MasteryState).filter(MasteryState.student_id == s.id).all()
+            assessed_states = [st for st in states if st.evidence_count > 0]
+            if assessed_states:
+                overall_mastery = sum(st.mastery_probability for st in assessed_states) / len(assessed_states)
+            else:
+                attempts = db.query(Attempt).filter(Attempt.student_id == s.id).all()
+                if attempts:
+                    overall_mastery = sum(1 for a in attempts if a.correct) / len(attempts)
+                else:
+                    overall_mastery = 0.35
+
+            overall_mastery = round(overall_mastery, 2)
+
+            if overall_mastery >= 0.85:
+                risk_status = "high_performer"
+            elif overall_mastery >= 0.50:
+                risk_status = "on_track"
+            else:
+                risk_status = "needs_support"
+
+            active_interventions = db.query(StudentMisconceptionInstance).filter(
+                StudentMisconceptionInstance.student_id == s.id,
+                StudentMisconceptionInstance.status == "active"
+            ).count()
+
+            cohort.append({
+                "student_id": s.id,
+                "full_name": s.name,
+                "overall_mastery": overall_mastery,
+                "risk_status": risk_status,
+                "active_interventions_count": active_interventions,
+            })
+        return cohort
+
+    @staticmethod
+    def get_teacher_struggling_topics(db: Session) -> List[Dict[str, Any]]:
+        """
+        Retrieves topic / skill performance across the student cohort.
+        Returns topics sorted by need for support (struggling topics first).
+        """
+        skills = db.query(Skill).all()
+        topics = []
+
+        for sk in skills:
+            m_states = db.query(MasteryState).filter(MasteryState.skill_id == sk.id).all()
+            assessed = [m for m in m_states if m.evidence_count > 0]
+            if assessed:
+                avg_m = sum(m.mastery_probability for m in assessed) / len(assessed)
+                struggling = sum(1 for m in assessed if m.mastery_probability < 0.50)
+            else:
+                avg_m = 0.45
+                struggling = 0
+
+            active_misc = db.query(StudentMisconceptionInstance).filter(
+                StudentMisconceptionInstance.skill_id == sk.id,
+                StudentMisconceptionInstance.status == "active"
+            ).count()
+            struggling_count = max(struggling, active_misc)
+
+            topics.append({
+                "topic_id": sk.id,
+                "topic_code": sk.code,
+                "topic_title": sk.name,
+                "avg_mastery": round(avg_m, 2),
+                "students_struggling_count": struggling_count,
+            })
+
+        topics.sort(key=lambda t: (t["avg_mastery"], -t["students_struggling_count"]))
+        return topics
+
+    @staticmethod
+    def get_teacher_class_overview(db: Session) -> Dict[str, Any]:
+        """
+        Teacher Analytics Surface:
+        - View 1: Student Mastery Table
+        - View 2: Class Misconception Heatmap Matrix
+        - View 3: Same-Score Different-Twins Proof (Student A vs Student B / Maya vs Arjun)
+        - High-level cohort summary metrics for new dashboard
+        """
+        cohort = AnalyticsService.get_teacher_cohort(db)
+        total_students = len(cohort)
+        if total_students > 0:
+            avg_cohort_mastery = round(sum(s["overall_mastery"] for s in cohort) / total_students, 2)
+            struggling_count = sum(1 for s in cohort if s["overall_mastery"] < 0.50)
+            mastered_count = sum(1 for s in cohort if s["overall_mastery"] >= 0.85)
+            at_risk_pct = round((struggling_count / total_students) * 100)
+        else:
+            avg_cohort_mastery = 0.0
+            struggling_count = 0
+            mastered_count = 0
+            at_risk_pct = 0
+
+        students_detail = []
+        for c in cohort:
+            s_id = c["student_id"]
+            states = db.query(MasteryState).filter(MasteryState.student_id == s_id).all()
+            skills_mastery = {st.skill.code if st.skill else st.skill_id: round(st.mastery_probability, 2) for st in states}
+            
+            active_m = db.query(StudentMisconceptionInstance).filter(
+                StudentMisconceptionInstance.student_id == s_id,
+                StudentMisconceptionInstance.status == "active"
+            ).first()
+            primary_gap = active_m.pattern.name if (active_m and active_m.pattern) else c["risk_status"].replace("_", " ").title()
+
+            students_detail.append({
+                "id": s_id,
+                "name": c["full_name"],
+                "score_percentage": round(c["overall_mastery"] * 100),
+                "overall_mastery": c["overall_mastery"],
+                "active_misconceptions_count": c["active_interventions_count"],
+                "primary_gap": primary_gap,
+                "skills_mastery": skills_mastery,
+            })
+
+        heatmap_records = db.query(StudentMisconceptionInstance).filter(
+            StudentMisconceptionInstance.status == "active"
+        ).all()
+        heatmap = [
+            {
+                "student_id": hr.student_id,
+                "student_name": hr.student.name if hr.student else "Student",
+                "pattern_id": hr.pattern_id,
+                "pattern_name": hr.pattern.name if hr.pattern else "Misconception",
+                "skill_id": hr.skill_id,
+                "status": hr.status,
+                "occurrences": hr.occurrences or 1,
+            }
+            for hr in heatmap_records
+        ]
+
+        patterns = db.query(MisconceptionPattern).filter(MisconceptionPattern.status == "active").all()
+        patterns_list = [{"id": p.id, "name": p.name} for p in patterns]
+
+        same_score_comparison = {
+            "target_score": 70,
+            "headline": "Same 70% Score. Completely Different Cognitive Twins.",
+            "student_a": {
+                "id": "student_a",
+                "name": "Maya Patel (Student A)",
+                "score": 70,
+                "diagnosis_type": "Procedural Flaw",
+                "primary_weakness": "Distributive Property — multiplies only first term inside parentheses: 3(x + 4) -> 3x + 4",
+                "strengths": "Strong basic linear balancing & combining terms",
+                "active_misconception": "Partial Distribution Error (PAT_DIST_PARTIAL)",
+                "detected_via": "Deterministic Rule Engine (AST step diff)",
+                "intervention_assigned": "Worked Example with visual bracket highlighting",
+                "recommended_next_step": "Complete 3 bracket-distribution expansion prompts",
+                "twin_color": "#2563EB"
+            },
+            "student_b": {
+                "id": "student_b",
+                "name": "Arjun Mehta (Student B)",
+                "score": 70,
+                "diagnosis_type": "Prerequisite Foundation Gap",
+                "primary_weakness": "Negative Number Operations — flips sign when subtracting negative constants: x - (-5) -> x - 5",
+                "strengths": "Perfect distribution & multi-term factoring",
+                "active_misconception": "Negative Constant Sign Subtraction (PAT_SIGN_SUBTRACTION)",
+                "detected_via": "Knowledge Graph Prerequisite Traversal",
+                "intervention_assigned": "Prerequisite Remediation: Number Line Directionality",
+                "recommended_next_step": "Review 6th Grade signed integer subtraction module",
+                "twin_color": "#7C3AED"
+            },
+            "core_thesis": "Standard tests assign both students a 70%. But Maya requires distributive algebra scaffolding, while Arjun requires fundamental signed integer remediation. A uniform review wastes Maya's time and fails to help Arjun."
+        }
+
+        return {
+            "total_students": total_students,
+            "avg_cohort_mastery": avg_cohort_mastery,
+            "struggling_students_count": struggling_count,
+            "mastered_students_count": mastered_count,
+            "at_risk_percentage": at_risk_pct,
+            "students": students_detail,
+            "heatmap": heatmap,
+            "patterns": patterns_list,
+            "same_score_comparison": same_score_comparison,
+        }
