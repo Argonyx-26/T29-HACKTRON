@@ -580,14 +580,23 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({
 
       {/* Upload Material Modal */}
       {showUploadModal && (
-        <DocumentUploadModal
-          onClose={() => setShowUploadModal(false)}
-          onChapterReady={() => {
-            setShowUploadModal(false);
-            loadTeacherData();
-            setMaterialsRefresh(value => value + 1);
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm overflow-y-auto"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowUploadModal(false);
           }}
-        />
+        >
+          <div className="w-full max-w-xl my-auto">
+            <DocumentUploadModal
+              onClose={() => setShowUploadModal(false)}
+              onChapterReady={() => {
+                setShowUploadModal(false);
+                loadTeacherData();
+                setMaterialsRefresh(value => value + 1);
+              }}
+            />
+          </div>
+        </div>
       )}
 
     </div>
